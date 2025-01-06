@@ -1,0 +1,10 @@
+cffi==1.17.0
+cryptography==43.0.0
+pdf2image==1.17.0
+pillow==10.4.0
+pyasn1==0.6.0
+pycparser==2.22
+PySimpleGUI==5.0.6
+python-dateutil==2.9.0.post0
+rsa==4.9
+six==1.16.0
