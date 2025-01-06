@@ -6,7 +6,7 @@ IceBerg Account Suite is intended to be a full-featured bookkeeping application 
 Version 1.02 (Calving Crutons)
 
 ## Current Features
-Currently, the software is capable of running encrypted bookkeeping databases with physical keys. The GUI can be used to journal transactions against a set of accounts using double-entry bookkeeping. Currently, vendor tracking is enabled, but Customer tracking, Invoicing, and Inventory have yet to be created, making the software useful to casual users and households only. 
+Currently, the software is capable of running encrypted bookkeeping databases with physical keys. The GUI can be used to journal transactions against a set of accounts using double-entry bookkeeping. Currently, vendor tracking is enabled, but Customer tracking, Invoicing, and Inventory have yet to be created, making the software useful to researchers, casual users, and households only. 
 
 
 
