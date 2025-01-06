@@ -1,4 +1,4 @@
-# IcebergAccountingSuite
+# Iceberg Accounting Suite
 
 IceBerg Account Suite is intended to be a full-featured bookkeeping application for households, bookkeepers, CPAs, and Tax Professionals to use when tracking financial records.
 
