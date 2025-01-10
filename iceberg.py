@@ -104,7 +104,7 @@ class new_session:
         session_log_connection = db.create_connection("sessions.icbs")
         self.session_log_connection = db.load_db_to_memory(session_log_connection)
         self.session_filekey, self.session_filename, self.session_save_location= db.encrypt_database("sessions.icbs","encrypt","sessions.icbskey",False,"sessions.icbs")
-
+        self.customer_number = 0
         #print(self.session_filekey)
 
 
@@ -166,18 +166,18 @@ overview_information_color = "#bbf0f9"
 
 
 #financials (SAMPLE DATA)
-total_credits = "0.00"
-total_debits = "0.00"
-total_assets = "0.00"
-total_expenses = "0.00"
-total_equity_withdrawals = "0.00"
-total_liabilities = "0.00"
-owner_equity = "0.00"
-total_revenue = "0.00"
-net_assets = "0.00"
-total_equity = "0.00"
-retained_earnings = "0.00"
-business_income = "0.00"
+total_credits = "$0.00"
+total_debits = "$0.00"
+total_assets = "$0.00"
+total_expenses = "$0.00"
+total_equity_withdrawals = "$0.00"
+total_liabilities = "$0.00"
+owner_equity = "$0.00"
+total_revenue = "$0.00"
+net_assets = "$0.00"
+total_equity = "$0.00"
+retained_earnings = "$0.00"
+business_income = "$0.00"
 
 #------------------------------------------Section 3 GUI Layout
 
@@ -209,45 +209,64 @@ def new_rows():
     layout_frame = [[sg.Text("Hello World"), sg.Push(), sg.Button('Delete', key=('Delete', index))]]
     return [[sg.Frame(f"Frame {index:0>2d}", layout_frame, expand_x=True, key=('Frame', index))]]
 
-def format_currency(integer):
-    """Converts a number of cents to currency format (string) without a dollar sign (2 digits after the decimal)"""
-    print(integer)
+def format_currency(integer,symbol='$'):
+    """Converts an integer number of cents to currency format (string) without a dollar sign (2 digits after the decimal)"""
+    initial_string = f"{int(integer)}"
+    print(initial_string)
     final_string = ''
-    if integer == 0 or integer == "0":
-        final_string = "0.00"
-    elif str(integer)[0]=="-":
-        no_commas = f"({integer*(-1)}"[:-2] + "." + f"{(integer*(-1))}"[-2:] + ")"
-        count = 0
-        for i in range(len(no_commas)):
-            if no_commas[len(no_commas)-i-1] != ')' and no_commas[len(no_commas)-i-1] != '(' and no_commas[len(no_commas)-i-1] != '.':
+    if int(integer) == 0 or integer == "0":
+        final_string = f"{symbol}0.00"
+    elif initial_string[0]=="-":
+        
+        if len(initial_string) >=5:
+            no_commas = f"({int(integer)*(-1)}"[:-2] + "." + f"{(int(integer)*(-1))}"[-2:] + ")"
 
-                count = count + 1
+            count = 0
+            for i in range(len(no_commas)):
+                if no_commas[len(no_commas)-i-1] != ')' and no_commas[len(no_commas)-i-1] != '(' and no_commas[len(no_commas)-i-1] != '.':
+
+                    count = count + 1
+
+                elif no_commas[len(no_commas)-i-1] == '.':
+                    count = 0    
                 
-            elif no_commas[len(no_commas)-i-1] == '.':
-                count = 0    
-            
-            if count < 4:
-                final_string = no_commas[len(no_commas)-i-1] + final_string
-            elif count == 4:
-                count =1
-                final_string = no_commas[len(no_commas)-i-1] + ',' + final_string 
+                if no_commas[len(no_commas)-i-1] == '(':
+                    final_string = no_commas[len(no_commas)-i-1] + symbol + final_string 
+                
+                elif count < 4:
+                    final_string = no_commas[len(no_commas)-i-1] + final_string
+                elif count == 4:
+                    count =1
+                    final_string = no_commas[len(no_commas)-i-1] + ',' + final_string 
+        elif len(initial_string)==3:
+            final_string = f"({symbol}0.{initial_string[1:]})"
+        elif len(initial_string)==2:
+            final_string = f"({symbol}0.0{initial_string[1:]})"
 
         
     else:
-        no_commas = f"{integer}"[:-2] + "." + f"{(integer*(-1))}"[-2:] 
-        count = 0
-        for i in range(len(no_commas)):
-            if no_commas[len(no_commas)-i-1] != '.':
-                count = count + 1
+
+        no_commas = f"{int(integer)}"[:-2] + f"{(int(integer)*(-1))}"[-2:] 
+        if len(initial_string) >=3:
+            no_commas = f"{int(integer)}"[:-2] + "." + f"{(int(integer)*(-1))}"[-2:] 
+            count = 0
+            for i in range(len(no_commas)):
+                if no_commas[len(no_commas)-i-1] != '.':
+                    count = count + 1
+                    
+                elif no_commas[len(no_commas)-i-1] == '.':
+                    count = 0    
                 
-            elif no_commas[len(no_commas)-i-1] == '.':
-                count = 0    
-            
-            if count < 4:
-                final_string = no_commas[len(no_commas)-i-1] + final_string
-            elif count == 4:
-                count =1
-                final_string = no_commas[len(no_commas)-i-1] + ',' + final_string 
+                if count < 4:
+                    final_string = no_commas[len(no_commas)-i-1] + final_string
+                elif count == 4:
+                    count =1
+                    final_string = no_commas[len(no_commas)-i-1] + ',' + final_string 
+            final_string = symbol + final_string 
+        elif len(initial_string) == 2 :
+            final_string = f"{symbol}0.{int(integer)}"
+        elif len(initial_string) == 1:
+            final_string = f"{symbol}0.0{int(integer)}"
         
     print(final_string)
     return final_string
@@ -259,6 +278,14 @@ index = 0
 
 
 
+#░▒▓█▓▒░         ░▒▓██████▓▒░  ░▒▓█▓▒░░▒▓█▓▒░  ░▒▓██████▓▒░  ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓████████▓▒░ 
+#░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░     
+#░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░     
+#░▒▓█▓▒░        ░▒▓████████▓▒░  ░▒▓██████▓▒░  ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░     
+#░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░     
+#░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░     
+#░▒▓████████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░      ░▒▓██████▓▒░   ░▒▓██████▓▒░     ░▒▓█▓▒░     
+                                                                                     
 
 menu_def = [
     ['&File',['&New Database','&Open Database','&Save Database', '!Save Database &As','Database &Properties','E&xit Iceberg']],
@@ -266,7 +293,7 @@ menu_def = [
     ['&Ledger',['&View Ledger','&New Transaction','!&Search Transactions','!New &Journal Entry','!&Reconcile']],
     ['&Reports',['!&Profit and Loss', '!Profit and Loss by &Month','!&Quarterly Report']],
     ['&Vendors',['&View Vendors', '&New Vendor']],
-    ['&Customers',['!&View Customers', '!&New Customer','!&Invoicing']],
+    ['&Customers',['&View Customers', '!&New Customer','!&Invoicing']],
     ['&Inventories',['!&View Invetories','!&New Lot','!&Point of Sale']],
     ['&Owner Equity',['!&View Equity','!New &Investment', '!New &Withdrawal']],
     ['&Employees',['!&View Employees', '!&Timekeeping', '!&Payroll', '!&Benefits']],
@@ -289,49 +316,49 @@ view_account_labels_pad = 2
 #-----------------Dashboard Setup----------------
 
 balance_frame_layout = [
-    [sg.Text(f"""Credits: ${total_credits}; Debits: ${total_debits}""", size=(35,1), font=("",small_print), enable_events=True, key="-Balance_Report-", justification="center", background_color=overview_information_color)],
+    [sg.Text(f"""Credits: {total_credits}; Debits: {total_debits}""", size=(35,1), font=("",small_print), enable_events=True, key="-Balance_Report-", justification="center", background_color=overview_information_color)],
     [sg.Text(f"""Your records are balanced.""", size=(35,1), font=("",small_print), enable_events=True, key="-Balance_Message-", justification="center", background_color=overview_information_color)],
 ]
 
 assets_frame_layout = [
-    [sg.Text(f"""Total Assets: ${total_assets}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Assets_Report-", justification="center", background_color=overview_information_color)],
+    [sg.Text(f"""Total Assets: {total_assets}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Assets_Report-", justification="center", background_color=overview_information_color)],
     [sg.Text(f"""Total Assets must equal Liabilities plus Total Equity.""", size=(35,2), font=("",small_print), enable_events=True, key="-Assets_Message-", justification="center", background_color=overview_information_color)],
 ]
 expenses_frame_layout = [
-    [sg.Text(f"""Total Expenses: ${total_expenses}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Expenses_Report-", justification="center", background_color=overview_information_color)],
+    [sg.Text(f"""Total Expenses: {total_expenses}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Expenses_Report-", justification="center", background_color=overview_information_color)],
     [sg.Text(f"""""", size=(35,1), font=("",small_print), enable_events=True, key="-Expenses_Message-", justification="center", background_color=overview_information_color)],
 ]
 withdrawals_frame_layout = [
-    [sg.Text(f"""Total Withdrawals: ${total_equity_withdrawals}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Withdrawals_Report-", justification="center", background_color=overview_information_color)],
+    [sg.Text(f"""Total Withdrawals: {total_equity_withdrawals}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Withdrawals_Report-", justification="center", background_color=overview_information_color)],
     [sg.Text(f"""""", size=(35,1), font=("",small_print), enable_events=True, key="-Withdrawals_Message-", justification="center", background_color=overview_information_color)],
 ]
 liabilities_frame_layout = [
-    [sg.Text(f"""Total Liabilities: ${total_liabilities}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Liabilities_Report-", justification="center", background_color=overview_information_color)],
+    [sg.Text(f"""Total Liabilities: {total_liabilities}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Liabilities_Report-", justification="center", background_color=overview_information_color)],
     [sg.Text(f"""""", size=(35,1), font=("",small_print), enable_events=True, key="-Liabilities_Message-", justification="center", background_color=overview_information_color)],
 ]
 equity_frame_layout = [
-    [sg.Text(f"""Owner_Equity: ${owner_equity}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Equity_Report-", justification="center", background_color=overview_information_color)],
+    [sg.Text(f"""Owner_Equity: {owner_equity}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Equity_Report-", justification="center", background_color=overview_information_color)],
     [sg.Text(f"""""", size=(35,1), font=("",small_print), enable_events=True, key="-Equity_Message-", justification="center", background_color=overview_information_color)],
 ]
 revenue_frame_layout = [
-    [sg.Text(f"""Revenue: ${total_revenue}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Revenue_Report-", justification="center", background_color=overview_information_color)],
+    [sg.Text(f"""Revenue: {total_revenue}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Revenue_Report-", justification="center", background_color=overview_information_color)],
     [sg.Text(f"""""", size=(35,1), font=("",small_print), enable_events=True, key="-Revenue_Message-", justification="center", background_color=overview_information_color)],
 ]
 net_assets_frame_layout = [
-    [sg.Text(f"""Net Assets: ${net_assets}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Net_Assets_Report-", justification="center", background_color=overview_information_color)],
+    [sg.Text(f"""Net Assets: {net_assets}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Net_Assets_Report-", justification="center", background_color=overview_information_color)],
     [sg.Text(f"""Net Assets must match Total Equity. \nTotal Assets - Liabilities""", size=(35,2), font=("",small_print), enable_events=True, key="-Net_Assets_Message-", justification="center", background_color=overview_information_color)],
 ]
 total_equity_frame_layout = [
-    [sg.Text(f"""Total Equity: ${total_equity}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Total_Equity_Report-", justification="center", background_color=overview_information_color)],
+    [sg.Text(f"""Total Equity: {total_equity}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Total_Equity_Report-", justification="center", background_color=overview_information_color)],
     [sg.Text(f"""Total Equity must match Net Assets. \nOwner Equity + Revenue - Expenses - Liabilities""", size=(38,2), font=("",7), enable_events=True, key="-Total_Equity_Message-", justification="center", background_color=overview_information_color)],
 ]
 
 retained_earnings_frame_layout = [
-    [sg.Text(f"""Retained Earnings: ${retained_earnings}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Retained_Earnings_Report-", justification="center", background_color=overview_information_color)],
+    [sg.Text(f"""Retained Earnings: {retained_earnings}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Retained_Earnings_Report-", justification="center", background_color=overview_information_color)],
     [sg.Text(f"""Ordinary Business Income - Withdrawals""", size=(35,1), font=("",small_print), enable_events=True, key="-Retained_Earnings_Message-", justification="center", background_color=overview_information_color)],
 ]
 business_income_frame_layout = [
-    [sg.Text(f"""Business Income: ${business_income}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Business_Income_Report-", justification="center", background_color=overview_information_color)],
+    [sg.Text(f"""Business Income: {business_income}""", size=(27,1), font=("",medium_print), enable_events=True, key="-Business_Income_Report-", justification="center", background_color=overview_information_color)],
     [sg.Text(f"""""", size=(35,1), font=("",small_print), enable_events=True, key="-Business_Income_Message-", justification="center", background_color=overview_information_color)],
 ]
 
@@ -402,7 +429,7 @@ view_vendors_edit_layout = [
     [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(12,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Vendor_Phone_Input-"), sg.OptionMenu(phone_types, pad=view_account_labels_pad+1, size=(8,1), background_color="white", disabled=True, key="-Vendor_PhoneType_Input-")],
     [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(view_vendors_data_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Vendor_Email_Input-")],
     [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(view_vendors_data_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Vendor_Website_Input-")],
-    [sg.Input(f"$0.00", pad=view_account_labels_pad+1, font=("",small_print), size=(view_vendors_data_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Vendor_Balance_Input-")],
+    [sg.Input(f"0.00", pad=view_account_labels_pad+1, font=("",small_print), size=(view_vendors_data_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Vendor_Balance_Input-")],
 ]
 
 
@@ -425,7 +452,7 @@ view_vendor_labels_layout = [
 
 view_vendor_frame_layout = [
     [sg.Input(f"Vendor Number", font=("",medium_print), size=(30,1),justification="center", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Vendor_Number_Display-")],    
-    [sg.Column(layout=view_vendor_labels_layout, justification = "left", background_color=overview_information_color, size=(view_vendors_labels_width*6,view_vendors_data_height*5)), sg.Column(layout=view_vendors_edit_layout, justification = "left", background_color=overview_information_color, size=(view_vendors_data_width*6,view_vendors_data_height*5) )],
+    [sg.Column(layout=view_vendor_labels_layout, justification = "left", background_color=overview_information_color, size=(view_vendors_labels_width*6,view_vendors_data_height*8)), sg.Column(layout=view_vendors_edit_layout, justification = "left", background_color=overview_information_color, size=(view_vendors_data_width*6,view_vendors_data_height*8) )],
     [sg.Text(f"Memo: ", font=("",small_print), size=(account_information_labels_width,1),justification="left", background_color=overview_information_color)],
     [sg.Multiline(f"Notes:", font=("",medium_print), autoscroll=True, size=(account_information_labels_width*2,4),justification="left", background_color=detailed_information_color, key="-Vendor_Notes_Display-")],
     [sg.Push(background_color=overview_information_color), sg.Button(f"Edit Vendor", disabled=True,  key="-Edit_Vendor_Button-")],
@@ -435,7 +462,7 @@ view_vendor_frame_layout = [
 
 
 view_vendors_tab_column_1 = [
-    [sg.Frame("Vendor: ", layout=view_vendor_frame_layout, size=(275,455),font=("",medium_print,"bold"), key="-View_Vendor_Frame-", background_color=overview_information_color)],
+    [sg.Frame("Vendor: ", layout=view_vendor_frame_layout, size=(275,600),font=("",medium_print,"bold"), key="-View_Vendor_Frame-", background_color=overview_information_color)],
 ]
 
 view_vendors_tab_column_2 = [
@@ -444,13 +471,79 @@ view_vendors_tab_column_2 = [
 
 vendors_tab = [
     #[sg.Text(font=("",medium_print), size=(133,1), justification="center")],
-    [sg.Column(view_vendors_tab_column_1, size=(280,460), element_justification="left"), sg.Column(view_vendors_tab_column_2, size=(960,460), element_justification="center", expand_x=True, expand_y=False)],
+    [sg.Column(view_vendors_tab_column_1, size=(280,600), element_justification="left"), sg.Column(view_vendors_tab_column_2, size=(960,600), element_justification="center", expand_x=True, expand_y=False)],
     [sg.Push(),sg.Input("",(20,1),disabled=True, enable_events=True, key="-Vendors_Search_Input-"),sg.Button("Search",enable_events=True, disabled=True, key="-Vendors_Search_Button-"), sg.Button("New Vendor",enable_events=True, key="-New_Vendor_Button-"),sg.Button("View Register",enable_events=True, key="-View_Vendor_Register_Button-"),sg.Text(" ")],
 ]
 
+
+
+
+
+
+
+
+
+view_customers_data_height = 30
+view_customers_labels_width = 10
+view_customers_data_width = 30
+
+view_customers_edit_layout = [
+    #[sg.Text(f"",font=("",medium_print), size=(account_information_labels_width,1),justification="left", background_color=overview_information_color)],
+    [sg.Input(f"No Customers", pad=view_account_labels_pad+1, font=("",small_print), size=(view_customers_data_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Customer_Name_Input-")],    
+    [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(view_customers_data_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Customer_Category_Input-")],    
+
+    [sg.Input(f"", pad=view_account_labels_pad+1,font=("",small_print), size=(view_customers_data_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Customer_Contact_First_Input-")],
+    [sg.Input(f"", pad=view_account_labels_pad+1,font=("",small_print), size=(view_customers_data_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Customer_Contact_Last_Input-")],
+    [sg.Input(f"", pad=view_account_labels_pad+1,font=("",small_print), size=(view_customers_data_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Customer_Contact_Preferred_Input-")],
+    [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(view_customers_data_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Customer_Address_Input-")],
+    [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(12,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Customer_Phone_Input-"), sg.OptionMenu(phone_types, pad=view_account_labels_pad+1, size=(8,1), background_color="white", disabled=True, key="-Customer_PhoneType_Input-")],
+    [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(view_customers_data_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Customer_Email_Input-")],
+    [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(view_customers_data_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Customer_Website_Input-")],
+    [sg.Input(f"0.00", pad=view_account_labels_pad+1, font=("",small_print), size=(view_customers_data_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Customer_Balance_Input-")],
+]
+
+
+
+view_customers_labels_layout = [
+    #[sg.Text(f"",font=("",medium_print), size=(account_information_labels_width,1),justification="left", background_color=overview_information_color)],
+    [sg.Text(f"Name: ",font=("",small_print), size=(view_customers_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=detailed_information_color, key="-Customer_Name_Display-")],    
+    [sg.Text(f"Category: ",font=("",small_print), size=(view_customers_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=detailed_information_color, key="-Customer_Category_Display-")],    
+
+    [sg.Text(f"First: ",font=("",small_print), size=(view_customers_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=overview_information_color, key="-Customer_Contact_First_Display-")],
+    [sg.Text(f"Last: ",font=("",small_print), size=(view_customers_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=overview_information_color, key="-Customer_Contact_Last_Display-")],
+    [sg.Text(f"Preferred: ",font=("",small_print), size=(view_customers_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=overview_information_color, key="-Customer_Contact_Preferred_Display-")],
+    [sg.Text(f"Address: ", font=("",small_print), size=(view_customers_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=detailed_information_color, key="-Customer_Address_Display-")],
+
+    [sg.Text(f"Phone: ", font=("",small_print), size=(view_customers_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=detailed_information_color, key="-Customer_Phone_Display-")],
+    [sg.Text(f"Email: ", font=("",small_print), size=(view_customers_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=overview_information_color, key="-Customer_Email_Display-")],
+    [sg.Text(f"Website: ", font=("",small_print), size=(view_customers_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=detailed_information_color, key="-Customer_Website_Display-")],
+    [sg.Text(f"Balance: ",font=("",small_print), size=(view_customers_labels_width,1),pad=(0, view_account_labels_pad), justification="left", background_color=overview_information_color, key="-Customer_Balance_Display-")],
+]
+
+view_customers_frame_layout = [
+    [sg.Input(f"Customer Number", font=("",medium_print), size=(30,1),justification="center", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Customer_Number_Display-")],    
+    [sg.Column(layout=view_customers_labels_layout, justification = "left", background_color=overview_information_color, size=(view_customers_labels_width*6,view_customers_data_height*8)), sg.Column(layout=view_customers_edit_layout, justification = "left", background_color=overview_information_color, size=(view_customers_data_width*6,view_customers_data_height*8) )],
+    [sg.Text(f"Memo: ", font=("",small_print), size=(account_information_labels_width,1),justification="left", background_color=overview_information_color)],
+    [sg.Multiline(f"Notes:", font=("",medium_print), autoscroll=True, size=(account_information_labels_width*2,4),justification="left", background_color=detailed_information_color, key="-Customer_Notes_Display-")],
+    [sg.Push(background_color=overview_information_color), sg.Button(f"Edit Customer", disabled=True,  key="-Edit_Customer_Button-")],
+]
+
+
+
+
+view_customers_tab_column_1 = [
+    [sg.Frame("Customer: ", layout=view_customers_frame_layout, size=(275,600),font=("",medium_print,"bold"), key="-View_Customer_Frame-", background_color=overview_information_color)],
+]
+
+view_customers_tab_column_2 = [
+    [sg.Table(values=[],row_height=36, col_widths=[10,20,20,14,14,14], cols_justification=["c","c","c","c","c","c"], auto_size_columns=False, headings=["Customer No.", "Name", "Contact", "Phone", "Email", "Balance"], num_rows=12, expand_x=True, expand_y=True, font=("",medium_print), enable_events=True, justification="Center", key="-View_Customers_Content-", background_color=detailed_information_color)],
+]
+
+
 customers_tab = [
-    [sg.Text(font=("",medium_print), size=(133,1))],
-    [sg.Text("Customers")],
+    #[sg.Text(font=("",medium_print), size=(133,1), justification="center")],
+    [sg.Column(view_customers_tab_column_1, size=(280,600), element_justification="left"), sg.Column(view_customers_tab_column_2, size=(960,600), element_justification="center", expand_x=True, expand_y=False)],
+    [sg.Push(),sg.Input("",(20,1),disabled=True, enable_events=True, key="-Customers_Search_Input-"),sg.Button("Search",enable_events=True, disabled=True, key="-Customers_Search_Button-"), sg.Button("New Customer",enable_events=True, key="-New_Customer_Button-"),sg.Button("View Register",enable_events=True, key="-View_Customer_Register_Button-"),sg.Text(" ")],
 ]
 
 invoicing_tab = [
@@ -478,9 +571,9 @@ view_account_edit_layout = [
     [sg.Input(f"Checking", pad=view_account_labels_pad+1, font=("",small_print), size=(account_information_labels_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Edit_Account_Bank_Acct_Type-")],
     [sg.Input(f"1234567890", pad=view_account_labels_pad+1, font=("",small_print), size=(account_information_labels_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Edit_Account_Bank_Acct_Number-")],
     [sg.Input(f"0987654321", pad=view_account_labels_pad+1,font=("",small_print), size=(account_information_labels_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Edit_Account_Bank_Acct_Routing-")],
-    [sg.Input(f"$6543.21", pad=view_account_labels_pad+1, font=("",small_print), size=(account_information_labels_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Edit_Account_Debits-")],
-    [sg.Input(f"$1234.56", pad=view_account_labels_pad+1, font=("",small_print), size=(account_information_labels_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Edit_Account_Credits-")],
-    [sg.Input(f"${6543.21-1234.56}", pad=view_account_labels_pad+1, font=("",small_print), size=(account_information_labels_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Edit_Account_Balance-")],
+    [sg.Input(f"6543.21", pad=view_account_labels_pad+1, font=("",small_print), size=(account_information_labels_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Edit_Account_Debits-")],
+    [sg.Input(f"1234.56", pad=view_account_labels_pad+1, font=("",small_print), size=(account_information_labels_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Edit_Account_Credits-")],
+    [sg.Input(f"{6543.21-1234.56}", pad=view_account_labels_pad+1, font=("",small_print), size=(account_information_labels_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Edit_Account_Balance-")],
 ]
 
 
@@ -505,7 +598,7 @@ view_account_frame_layout = [
     [sg.Input(f"Joint Bank Account", font=("",medium_print), size=(30,1),justification="center", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Edit_Account_Name_Input-")],    
     [sg.Column(layout=view_account_labels_layout, justification = "left", background_color=overview_information_color, size=(account_information_labels_width*7,view_account_column_height)), sg.Column(layout=view_account_edit_layout, justification = "left", background_color=overview_information_color, size=(account_information_labels_width*5,view_account_column_height) )],
     [sg.Text(f"Notes: ", font=("",small_print), size=(account_information_labels_width,1),justification="left", background_color=overview_information_color)],
-    [sg.Multiline(f"Notes and notes and notes and notes and lorum ipsum draco inquisitor", font=("",medium_print), autoscroll=True, size=(account_information_labels_width*2,5),justification="left", background_color=detailed_information_color, key="-Account_Notes_Display-")],
+    [sg.Multiline(f"Notes and notes and notes and notes and lorum ipsum lebold valco hebonable ens je patetin", font=("",medium_print), autoscroll=True, size=(account_information_labels_width*2,5),justification="left", background_color=detailed_information_color, key="-Account_Notes_Display-")],
     [sg.Push(background_color=overview_information_color), sg.Button(f"Edit Account", disabled=True,  key="-Edit_Account_Button-")],
 ]
 
@@ -555,28 +648,28 @@ view_properties_tab = [
 
 transaction_information_labels_width = 10
 
-transaction_information_width = 40- transaction_information_labels_width
+transaction_information_width = 43- transaction_information_labels_width
 
 view_ledger_labels_layout = [
-    [sg.Text(f"Name: ",font=("",small_print), size=(transaction_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=detailed_information_color, key="-Ledger_Name_Display-")],
-    [sg.Text(f"Date: ",font=("",small_print), size=(transaction_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=detailed_information_color, key="-Ledger_Date_Display-")],
+    [sg.Text(f"Name: ",font=("",small_print), size=(transaction_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=overview_information_color, key="-Ledger_Name_Display-")],
+    [sg.Text(f"Date: ",font=("",small_print), size=(transaction_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=overview_information_color, key="-Ledger_Date_Display-")],
     [sg.Text(f"Recorded: ",font=("",small_print), size=(transaction_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=overview_information_color, key="-Ledger_Recorded_Display-")],
     [sg.Text(f"Edited: ",font=("",small_print), size=(transaction_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=overview_information_color, key="-Ledger_Edited_Display-")],
-    [sg.Text(f"Amount: ", font=("",small_print), size=(transaction_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=detailed_information_color, key="-Ledger_Amount_Display-")],
+    [sg.Text(f"Amount: ", font=("",small_print), size=(transaction_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=overview_information_color, key="-Ledger_Amount_Display-")],
     [sg.Text(f"Debit Acct: ", font=("",small_print), size=(transaction_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=overview_information_color, key="-Ledger_Credit_Display-")],
-    [sg.Text(f"Credit Acct: ", font=("",small_print), size=(transaction_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=detailed_information_color, key="-Ledger_Debit_Display-")],
-    [sg.Text(f"Customer: ", font=("",small_print), size=(transaction_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=detailed_information_color, key="-Ledger_Customer_Display-")],
-    [sg.Text(f"Vendor: ", font=("",small_print), size=(transaction_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=detailed_information_color, key="-Ledger_Vendor_Display-")],
+    [sg.Text(f"Credit Acct: ", font=("",small_print), size=(transaction_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=overview_information_color, key="-Ledger_Debit_Display-")],
+    [sg.Text(f"Customer: ", font=("",small_print), size=(transaction_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=overview_information_color, key="-Ledger_Customer_Display-")],
+    [sg.Text(f"Vendor: ", font=("",small_print), size=(transaction_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=overview_information_color, key="-Ledger_Vendor_Display-")],
 ]
 
 view_ledger_edit_layout = [
     #[sg.Text(f"",font=("",medium_print), size=(account_information_labels_width,1),justification="left", background_color=overview_information_color)],
     [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(transaction_information_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Ledger_Name_Input-")],    
-    [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(transaction_information_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Ledger_Date_Input-")],    
-    [sg.Input(f"", pad=view_account_labels_pad+1,font=("",small_print), size=(transaction_information_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Ledger_Recorded_Input-")],
-    [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(transaction_information_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Ledger_Edited_Input-")],
-    [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(transaction_information_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Ledger_Amount_Input-")],
-    [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(transaction_information_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Ledger_Credit_Input-")],
+    [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(transaction_information_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Ledger_Date_Input-")],    
+    [sg.Input(f"", pad=view_account_labels_pad+1,font=("",small_print), size=(transaction_information_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Ledger_Recorded_Input-")],
+    [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(transaction_information_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Ledger_Edited_Input-")],
+    [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(transaction_information_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Ledger_Amount_Input-")],
+    [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(transaction_information_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Ledger_Credit_Input-")],
     [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(transaction_information_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Ledger_Debit_Input-")],
     [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(transaction_information_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Ledger_Customer_Input-")],
     [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(transaction_information_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Ledger_Vendor_Input-")],
@@ -585,20 +678,19 @@ view_ledger_edit_layout = [
 
 #default_logo = Image.open("50666888.jpg")
 #default_logo.save("50666888.png")
-view_transaction_column_height = 195
+view_transaction_column_height = 212
 
 view_ledger_frame_layout = [
     [sg.Input(f"Transaction Number", font=("",medium_print), size=(30,1),justification="center", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Transaction_Number_Display-")],    
-    [sg.Column(layout=view_ledger_labels_layout, justification = "left", background_color=overview_information_color, size=(transaction_information_labels_width*7,view_transaction_column_height)), sg.Column(layout=view_ledger_edit_layout, justification = "left", background_color=overview_information_color, size=(transaction_information_width*7,int(view_transaction_column_height)) )],
-    [sg.Text(f"Notes: ", font=("",small_print), size=(account_information_labels_width,1),justification="left", background_color=overview_information_color)],
-    [sg.Multiline(f"", font=("",medium_print), autoscroll=True, size=(account_information_labels_width*2,4),justification="left", background_color=detailed_information_color, key="-Transaction_Notes_Display-")],
+    [sg.Column(layout=view_ledger_labels_layout, justification = "left", background_color=overview_information_color, size=(transaction_information_labels_width*7,view_transaction_column_height)), sg.Column(layout=view_ledger_edit_layout, justification = "left", background_color=overview_information_color, size=(transaction_information_width*8,int(view_transaction_column_height)) )],
+    [sg.Multiline(f"", font=("",medium_print), autoscroll=True, size=(account_information_labels_width*2,3),justification="left", background_color=detailed_information_color, key="-Transaction_Notes_Display-")],
     [sg.Image("50666888.png", key="-Transaction_Image_Button-", size=(258,280),subsample=4,enable_events=True)],
     [sg.Push(background_color=overview_information_color), sg.Button(f"Edit Transaction", disabled=True,  key="-Edit_Transaction_Button-")],
 ]
 
 
 view_ledger_tab_column_1 = [
-    [sg.Frame("Transaction: ", layout=view_ledger_frame_layout, size=(275,755),font=("",medium_print,"bold"), key="-View_Ledger_Frame-", background_color=overview_information_color)],
+    [sg.Frame("Transaction: ", layout=view_ledger_frame_layout, size=(300,755),font=("",medium_print,"bold"), key="-View_Ledger_Frame-", background_color=overview_information_color)],
 ]
 view_ledger_tab_column_2 = [
     [sg.Text(f"Ledger: None", expand_x=True, font=("",medium_print), justification="center", key="-Ledger_Title_Display-")],
@@ -611,7 +703,7 @@ view_ledger_tab_column_2 = [
 
 
 ledger_tab = [
-    [sg.Column(view_ledger_tab_column_1, size=(280,755), element_justification="left"), sg.Column(view_ledger_tab_column_2, size=(960,755), element_justification="center", expand_x=True, expand_y=False)],
+    [sg.Column(view_ledger_tab_column_1, size=(300,755), element_justification="left"), sg.Column(view_ledger_tab_column_2, size=(935,755), element_justification="center", expand_x=True, expand_y=False)],
 ]
 
 #-------------Overall Layout------------------------
@@ -641,6 +733,17 @@ layout1 = [
 
 
 tab_keys = ['-Dashboard_Tab-','-Ledger_Tab-','-Reports_Tab-','-Vendors_Tab-','-Customers_Tab-','-Invoicing_Tab-','-Inventory_Tab-','-Owner_Equity_Tab-','-View_Account_Tab-','-View_Properties_Tab-']
+
+
+#░▒▓███████▓▒░   ░▒▓██████▓▒░  ░▒▓███████▓▒░  ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓███████▓▒░   ░▒▓███████▓▒░ 
+#░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░        
+#░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░        
+#░▒▓███████▓▒░  ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓███████▓▒░  ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓███████▓▒░   ░▒▓██████▓▒░  
+#░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░               ░▒▓█▓▒░ 
+#░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░               ░▒▓█▓▒░ 
+#░▒▓█▓▒░         ░▒▓██████▓▒░  ░▒▓█▓▒░         ░▒▓██████▓▒░  ░▒▓█▓▒░        ░▒▓███████▓▒░ 
+
+
 
 def new_database_layout(num):
     num = num + 1
@@ -672,14 +775,17 @@ def open_database_layout(num):
 
 def new_transaction_layout(num):
     num = num + 1
-    count_transactions_query = f"""SELECT COUNT(Transaction_ID) AS [Number_of_Records] FROM {icb_session.ledger_name};"""
+    count_transactions_query = f"""SELECT MAX(Transaction_ID) AS [Number_of_Records] FROM {icb_session.ledger_name};"""
     transaction_number = db.execute_read_query_dict(icb_session.connection, count_transactions_query)
     transaction_number_str = "1"
-    #print(count_transactions_query)
-    #print("transaction_number")
-    #print(transaction_number)
+    print(count_transactions_query)
+    print("transaction_number")
+    print(transaction_number)
     if type(transaction_number) != str:
-        transaction_number_str = f"""{int(transaction_number[0]['Number_of_Records'])+1}"""
+        num_records = transaction_number[0]['Number_of_Records']
+        if num_records == None or num_records == "None":
+            num_records = 0
+        transaction_number_str = f"""{int(num_records)+1}"""
     retrieve_accounts_query = f"""SELECT * FROM tbl_Accounts;"""
     icb_session.all_accounts = db.execute_read_query_dict(icb_session.connection,retrieve_accounts_query)
     these_accounts = []
@@ -696,7 +802,7 @@ def new_transaction_layout(num):
     else:
         these_vendors.append("None")
     new_transaction_column_1 = [
-        [sg.Image("CHECKBOOK_ART_FREE_LICENCE_NO_COMMERCIAL.png",size=(50,50),subsample=1),sg.Column([[sg.Sizer(45,0)],[sg.HorizontalLine()],[sg.Sizer(45,0)]],size=(45,16),pad=0,vertical_alignment="center"), sg.Column([[sg.Sizer(200,8)],[sg.Text(f"Transaction {transaction_number_str}", size=(13,1), font=("Bold",large_print),justification="center", pad=(0,0), key=f"-Transaction_Title_{num}-")],[sg.Sizer(200,0)]],pad=0, size=(200,32), element_justification="center", vertical_alignment="top"),sg.Column([[sg.Sizer(120,0)],[sg.HorizontalLine()],[sg.Sizer(120,0)]],size=(120,16),pad=0,vertical_alignment="center")],
+        [sg.Image("CHECKBOOK_ART_FREE_LICENCE_NO_COMMERCIAL.png",size=(50,50),subsample=1),sg.Text(f"Transaction {transaction_number_str}", size=(13,1), font=("Bold",large_print),justification="center", pad=(0,0), key=f"-Transaction_Title_{num}-")],
         [sg.Text("Transaction Name: ", font=("",medium_print)), sg.Push(), sg.Input(size=(20,1), key=f"-Transaction_Name_{num}-", font=("", medium_print) )],
         [sg.Text("Transaction Date: ", font=("",medium_print)), sg.Push(),sg.Input("",size=(12,1),font=("",medium_print), key=f"-Transaction_Date_String_{num}-"), sg.CalendarButton(f"Select Date",format= "%Y-%m-%d", size=(16,1),key=f"-Transaction_Date_{num}-", enable_events=True)],
         [sg.Text("Amount: ", font=("",medium_print)), sg.Push(), sg.Text("$",size=(1,1),font=("",medium_print)), sg.Input("",(16,1),key=f"-Transaction_Amount_{num}-")],
@@ -704,7 +810,7 @@ def new_transaction_layout(num):
         [sg.Text("Credit Account: ", font=("",medium_print)), sg.Push(), sg.OptionMenu(these_accounts,key=f"-Transaction_Credit_Account_{num}-", enable_events=False)],
         [sg.Text("Vendor: ", font=("",medium_print)), sg.Push(), sg.OptionMenu(these_vendors,key=f"-Transaction_Vendor_{num}-")],
         [sg.Text("Customer: ", font=("",medium_print)), sg.Push(), sg.OptionMenu(["","Pauli Portabello","Sally Swiss Chard","Officer Acorn Squash"],key=f"-Transaction_Customer_{num}-")],
-        [sg.Multiline("Notes: ", font=("",medium_print), size=(44,8),key=f"-Transaction_Notes_{num}-")],
+        [sg.Multiline("Notes: ", font=("",medium_print), size=(44,4),key=f"-Transaction_Notes_{num}-")],
     ]
     
     new_transaction_column_2 = [
@@ -731,7 +837,7 @@ def new_account_layout(num):
     icb_session.num = num
 
     new_account_column = [
-        [sg.Image("CHECKBOOK_ART_FREE_LICENCE_NO_COMMERCIAL.png",size=(50,50),subsample=1),sg.Column([[sg.Sizer(45,0)],[sg.HorizontalLine()],[sg.Sizer(45,0)]],size=(45,16),pad=0,vertical_alignment="center"), sg.Column([[sg.Sizer(200,8)],[sg.Text(f"New Account", size=(13,1), font=("Bold",large_print),justification="center", pad=(0,0), key=f"-Account_Title_{num}-")],[sg.Sizer(200,0)]],pad=0, size=(200,32), element_justification="center", vertical_alignment="top"),sg.Column([[sg.Sizer(120,0)],[sg.HorizontalLine()],[sg.Sizer(120,0)]],size=(120,16),pad=0,vertical_alignment="center")],
+        [sg.Image("CHECKBOOK_ART_FREE_LICENCE_NO_COMMERCIAL.png",size=(50,50),subsample=1),sg.Text(f"New Account", size=(13,1), font=("Bold",large_print),justification="center", key=f"-Account_Title_{num}-")],
         [sg.Text("Account Name: ", font=("",medium_print)), sg.Push(), sg.Input(size=(20,1), key=f"-Account_Name_{num}-", font=("", medium_print) )],
         [sg.Text("Account Type: ", font=("",medium_print)), sg.Push(), sg.Push(), sg.OptionMenu(values=["10 Assets","11 Expenses", "12 Withdrawals", "13 Liabilities", "14 Owner Equity", "15 Revenue"], enable_events=False, auto_size_text=True, default_value="10 Assets",key=f"-Account_Type_Picker_{num}-")],
         [sg.Text("Bank: ", font=("",medium_print)), sg.Push(), sg.Input("",(16,1),key=f"-Account_Bank_{num}-")],
@@ -788,7 +894,7 @@ def new_vendor_layout(num,vendor_number):
         [sg.Text("Address: ", font=("",medium_print)), sg.Push(), sg.Input(key=f"-Vendor_Address_{num}-", size=(30,1))],
         [sg.Text("Email: ", font=("",medium_print)), sg.Push(), sg.Input(key=f"-Vendor_Email_{num}-", size=(30,1))],
         [sg.Text("Website: ", font=("",medium_print)), sg.Push(), sg.Input(key=f"-Vendor_Website_{num}-", size=(30,1))],
-        [sg.Multiline("Notes: ", font=("",medium_print), size=(62,8),key=f"-Vendor_Notes_{num}-",)],
+        [sg.Multiline("Notes: ", font=("",medium_print), size=(62,4),key=f"-Vendor_Notes_{num}-",)],
         [sg.Column([[sg.Button(button_text="Add Vendor",size=(20,1),key=f'-Submit_Vendor_Button_{num}-', enable_events=True)],[sg.Sizer(460,60)]],justification="center", size=(480,60),element_justification="center",expand_x=True)],
 
     ]
@@ -796,7 +902,34 @@ def new_vendor_layout(num,vendor_number):
     return new_vendor_layout, num    
 
 
+def new_customer_layout(num,customer_number):
+    num = num + 1
+    new_customer_layout = [
+        [sg.Text(f"Customer Number: {customer_number}", font=("",medium_print),expand_x=True, justification="center")],
+        [sg.Text("Business Name: ", font=("",medium_print)), sg.Push(), sg.Input("",(30,1),key=f"-Customer_Name_{num}-",)],
+        [sg.Text("Contact First Name: ", font=("",medium_print)), sg.Push(), sg.Input(key=f"-Customer_Contact_First_{num}-", size=(30,1))],
+        [sg.Text("Contact Last Name: ", font=("",medium_print)), sg.Push(), sg.Input(key=f"-Customer_Contact_Last_{num}-", size=(30,1))],
+        [sg.Text("Contact Preferred Name: ", font=("",medium_print)), sg.Push(), sg.Input(key=f"-Customer_Contact_Preferred_{num}-", size=(30,1))],
+        [sg.Text("Phone:", font=("",medium_print)), sg.Push(), sg.Input(key=f"-Customer_Phone_{num}-", size=(17,1)), sg.OptionMenu(phone_types,"Mobile",key=f"-Customer_Phone_Type_{num}-")],
+        [sg.Text("Address: ", font=("",medium_print)), sg.Push(), sg.Input(key=f"-Customer_Address_{num}-", size=(30,1))],
+        [sg.Text("Email: ", font=("",medium_print)), sg.Push(), sg.Input(key=f"-Customer_Email_{num}-", size=(30,1))],
+        [sg.Multiline("Notes: ", font=("",medium_print), size=(62,4),key=f"-Customer_Notes_{num}-",)],
+        [sg.Column([[sg.Button(button_text="Add Customer",size=(20,1),key=f'-Submit_Customer_Button_{num}-', enable_events=True)],[sg.Sizer(460,60)]],justification="center", size=(480,60),element_justification="center",expand_x=True)],
+
+    ]
+    
+    return new_customer_layout, num    
+
+
 #------------------------------------------Section 4 Data Functions
+
+#░▒▓████████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓███████▓▒░   ░▒▓██████▓▒░  ░▒▓████████▓▒░ ░▒▓█▓▒░  ░▒▓██████▓▒░  ░▒▓███████▓▒░   ░▒▓███████▓▒░ 
+#░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░     ░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░        
+#░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░           ░▒▓█▓▒░     ░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░        
+#░▒▓██████▓▒░   ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░           ░▒▓█▓▒░     ░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░  ░▒▓██████▓▒░  
+#░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░           ░▒▓█▓▒░     ░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░        ░▒▓█▓▒░ 
+#░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░     ░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░        ░▒▓█▓▒░ 
+#░▒▓█▓▒░         ░▒▓██████▓▒░  ░▒▓█▓▒░░▒▓█▓▒░  ░▒▓██████▓▒░     ░▒▓█▓▒░     ░▒▓█▓▒░  ░▒▓██████▓▒░  ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓███████▓▒░ 
 
 #Comment out the encryption functions that were moved to db_calls
 #Remove when fully depreciated.
@@ -1267,10 +1400,10 @@ def update_dashboard_statistics(window, values):
                 elif credit_account == account_Id:
                     credits = credits + amount
                     balance = account_type*(debits - credits)
-        credits = "$" + format_currency(credits)
-        debits = "$" + format_currency(debits)
+        credits =  format_currency(credits)
+        debits = format_currency(debits)
               
-        balance = "$" + format_currency(balance)
+        balance = format_currency(balance)
         
         chart_of_accounts_display_content.append([account_Id,account_Name,credits, debits, balance])
     window['-Chart_of_Accounts_Content-'].update(chart_of_accounts_display_content)
@@ -1342,40 +1475,40 @@ def update_dashboard_statistics(window, values):
 
 
     #Balance report
-    balance_report = f"""Credits: ${total_credits_display}; Debits: ${total_debits_display}"""
+    balance_report = f"""Credits: {total_credits_display}; Debits: {total_debits_display}"""
     window["-Balance_Report-"].update(balance_report)
     if total_credits != total_debits:
         window["-Balance_Message-"].update("Warning: Your accounts are out of balance!")
     
     #assets report
-    assets_report = f"""Total Assets: ${total_assets_display}"""
+    assets_report = f"""Total Assets: {total_assets_display}"""
     window["-Assets_Report-"].update(assets_report)
 
-    expenses_report = f"""Total Expenses: ${total_expenses_display}"""
+    expenses_report = f"""Total Expenses: {total_expenses_display}"""
     window["-Expenses_Report-"].update(expenses_report)
 
-    withdrawals_report = f"""Total Withdrawals: ${total_withdrawals_display}"""
+    withdrawals_report = f"""Total Withdrawals: {total_withdrawals_display}"""
     window["-Withdrawals_Report-"].update(withdrawals_report)
 
-    liabilities_report = f"""Total Liabilities: ${total_liabilities_display}"""
+    liabilities_report = f"""Total Liabilities: {total_liabilities_display}"""
     window["-Liabilities_Report-"].update(liabilities_report)
 
-    owner_equity_report = f"""Owner_Equity: ${owner_equity_display}"""
+    owner_equity_report = f"""Owner_Equity: {owner_equity_display}"""
     window["-Equity_Report-"].update(owner_equity_report)
 
-    total_equity_report = f"""Owner_Equity: ${total_equity_display}"""
+    total_equity_report = f"""Owner_Equity: {total_equity_display}"""
     window["-Total_Equity_Report-"].update(total_equity_report)
 
-    revenue_report = f"""Revenue: ${total_revenue_display}"""
+    revenue_report = f"""Revenue: {total_revenue_display}"""
     window["-Revenue_Report-"].update(revenue_report)
 
-    net_assets_report = f"""Net Assets: ${net_assets_display}"""
+    net_assets_report = f"""Net Assets: {net_assets_display}"""
     window["-Net_Assets_Report-"].update(net_assets_report)
 
-    retained_earnings_report = f"""Retained Earnings: ${retained_earnings_display}"""
+    retained_earnings_report = f"""Retained Earnings: {retained_earnings_display}"""
     window["-Retained_Earnings_Report-"].update(retained_earnings_report)
 
-    business_income_report = f"""Business Income: ${business_income_display}"""
+    business_income_report = f"""Business Income: {business_income_display}"""
     window["-Business_Income_Report-"].update(business_income_report)
 
     window["-Load_Messages-"].update(f"{icb_session.db_name[:-4]}")
@@ -1436,7 +1569,7 @@ def load_view_account_tab(window, values, account_number, ledger_name):
 
     icb_session.account_number = this_account
 
-    this_account_transactions_query = f"""SELECT * FROM {ledger_name} WHERE Debit_Acct IS {account_number} OR Credit_Acct IS {account_number} ORDER BY Transaction_Date DESC;"""
+    this_account_transactions_query = f"""SELECT * FROM {ledger_name} WHERE Debit_Acct IS {account_number} OR Credit_Acct IS {account_number} ORDER BY Transaction_Date DESC, Transaction_ID DESC;"""
     this_account_transactions = db.execute_read_query_dict(icb_session.connection, this_account_transactions_query)
     this_account_transactions = list(reversed(this_account_transactions))
     #print(this_account_transactions)
@@ -1494,9 +1627,9 @@ def load_view_account_tab(window, values, account_number, ledger_name):
     window['-Edit_Account_Bank_Acct_Type-'].update(this_account['Ins_Account_Type'])
     window['-Edit_Account_Bank_Acct_Number-'].update(this_account['Ins_Account_Number'])
     window['-Edit_Account_Bank_Acct_Routing-'].update(this_account['Ins_Routing_Number'])
-    window['-Edit_Account_Debits-'].update(f"${this_account_debits_formattted}")
-    window['-Edit_Account_Credits-'].update(f"${this_account_credits_formattted}")
-    window['-Edit_Account_Balance-'].update(f"${this_account_balance_formattted}")
+    window['-Edit_Account_Debits-'].update(f"{this_account_debits_formattted}")
+    window['-Edit_Account_Credits-'].update(f"{this_account_credits_formattted}")
+    window['-Edit_Account_Balance-'].update(f"{this_account_balance_formattted}")
     window['-Account_Notes_Display-'].update(this_account['Notes'])
     window['-Account_Register_Content-'].update(display_transactions)
     return window, values
@@ -1574,7 +1707,7 @@ def load_vendors_tab(window,values):
     else:
         icb_session.current_console_messages = icb_session.console_log("Add a new Vendor to the database to get started.",icb_session.current_console_messages)
 
-#TODO: Two helper functions. One to retrieve Customer data one to retrieve Vendor data
+
 
 def get_customer(window, values, customer_id):
     """Retrieves customer data from the database."""
@@ -1585,6 +1718,28 @@ def get_customer(window, values, customer_id):
         return "None"
     else:
         return customer
+
+def add_customer_to_database(window,values):
+    """Adds a customer to the database based on the form input."""
+    current_time = get_current_time_info()
+    add_customer_number = icb_session.customer_number
+    add_customer_company_name = values[f"""-Customer_Name_{icb_session.num}-"""]
+    add_customer_contact_first = values[f"""-Customer_Contact_First_{icb_session.num}-"""]
+    add_customer_contact_last = values[f"""-Customer_Contact_Last_{icb_session.num}-"""]
+    add_customer_contact_preferrred = values[f"""-Customer_Contact_Preferred_{icb_session.num}-"""]
+    add_customer_phone = values[f"""-Customer_Phone_{icb_session.num}-"""]
+    add_customer_phone_type = values[f"""-Customer_Phone_Type_{icb_session.num}-"""]
+    add_customer_address = values[f"""-Customer_Address_{icb_session.num}-"""]
+    add_customer_email = values[f"""-Customer_Email_{icb_session.num}-"""]
+    add_customer_notes = values[f"""-Customer_Notes_{icb_session.num}-"""]
+
+    add_customer_query = f"""INSERT INTO tbl_Customers (Customer_ID, Customer_Company_Name,  Customer_First_Name, Customer_Last_Name, Preferred_Name, Customer_Phone_Number, Customer_Phone_Number_Type, Created_Time, Edited_Time, Customer_Address, Customer_Email, Notes)
+    VALUES ({add_customer_number},"{add_customer_company_name}","{add_customer_contact_first}","{add_customer_contact_last}","{add_customer_contact_preferrred}","{add_customer_phone}","{add_customer_phone_type}","{current_time[1]}","{current_time[1]}","{add_customer_address}","{add_customer_email}","{add_customer_notes}");"""
+
+    added_customer = db.execute_query(icb_session.connection,add_customer_query)
+
+    icb_session.current_console_messages = icb_session.console_log(f"Added Customer {add_customer_number}: {added_customer}",icb_session.current_console_messages)
+
 
 def load_ledger_tab(window, values):
     """Loads transactions into the Ledger."""
@@ -1602,7 +1757,7 @@ def load_ledger_tab(window, values):
                 print(retrieved_customer)
                 customer_name = f"{retrieved_customer['Customer_First_Name']} {retrieved_customer['Customer_Last_Name']} ({retrieved_customer['Preferred_Name']})"
             
-            icb_session.transactions.append([f"{transaction['Transaction_ID']}",f"{transaction['Name']}",f"${format_currency(int(transaction['Amount']))}",f"{transaction['Debit_Acct']}",f"{transaction['Credit_Acct']}", f"{transaction['Transaction_Date']}"])
+            icb_session.transactions.append([f"{transaction['Transaction_ID']}",f"{transaction['Name']}",f"{format_currency(int(transaction['Amount']))}",f"{transaction['Debit_Acct']}",f"{transaction['Credit_Acct']}", f"{transaction['Transaction_Date']}"])
         icb_session.window["-Ledger_Display_Content-"].update(icb_session.transactions)
         icb_session.window['-Ledger_Title_Display-'].update(icb_session.ledger_name)
     
@@ -1621,7 +1776,7 @@ def load_transaction_details(transaction_number):
     icb_session.window['-Ledger_Date_Input-'].update(f"{transaction[0]['Transaction_Date']}")
     icb_session.window['-Ledger_Recorded_Input-'].update(f"{transaction[0]['Created_Time']}")
     icb_session.window['-Ledger_Edited_Input-'].update(f"{transaction[0]['Edited_Time']}")
-    icb_session.window['-Ledger_Amount_Input-'].update(f"${format_currency(transaction[0]['Amount'])}")
+    icb_session.window['-Ledger_Amount_Input-'].update(f"{format_currency(transaction[0]['Amount'])}")
     icb_session.window['-Ledger_Credit_Input-'].update(f"{transaction[0]['Credit_Acct']}")
     icb_session.window['-Ledger_Debit_Input-'].update(f"{transaction[0]['Debit_Acct']}")
     icb_session.window['-Ledger_Recorded_Input-'].update(f"{transaction[0]['Created_Time']}")
@@ -1731,8 +1886,65 @@ def add_account_to_database(values):
     else:
         icb_session.current_console_messages = icb_session.console_log(message=account_count,current_console_messages=icb_session.current_console_messages)
 
-#------------------------------------------Section 6 Window and Event Loop
 
+def update_chart_of_accounts(window, values, acct_types):
+    if acct_types == "All Accounts":
+        update_dashboard_statistics(window,values)
+    else:
+        read_ledger_query = f"""SELECT * FROM {icb_session.ledger_name} WHERE Credit_Acct LIKE '{acct_types}%' OR Debit_Acct LIKE '{acct_types}%';"""
+        #Read the database
+        #read_ledger_query = f"""SELECT * FROM {icb_session.ledger_name};""" # WHERE Transaction_Date >= '{start_date}' AND Transaction_Date < '{end_date}'
+        print(read_ledger_query)
+        current_year_ledger = db.execute_read_query_dict(icb_session.connection, read_ledger_query)
+        print(type(current_year_ledger))
+        print(f"read the ledger: {current_year_ledger}")
+        if type(current_year_ledger) == str:
+            current_year_ledger = False
+        read_accounts_query = f"""SELECT * from tbl_Accounts WHERE Account_ID LIKE '{acct_types}%';"""
+        accounts = db.execute_read_query_dict(icb_session.connection, read_accounts_query)
+        #print(accounts)
+        #Create and display the chart of accounts.
+        chart_of_accounts_display_content = []
+        for account in accounts:
+            account_type = 1
+            account_Id = str(account['Account_ID'])
+            account_Name = str(account['Name'])
+            #print(account_Id)
+            if int(account_Id[1]) >= 3:
+                account_type = int(-1)
+            credits = 0
+            debits = 0
+            balance = 0
+            if current_year_ledger:
+                for transaction in current_year_ledger:
+                    transaction_Id = transaction['Transaction_ID']
+                    debit_account = transaction['Debit_Acct']
+                    credit_account = transaction['Credit_Acct']
+                    amount = transaction['Amount']
+                    if debit_account == account_Id:
+                        debits = debits + amount
+                        balance = account_type*(debits - credits)
+                    elif credit_account == account_Id:
+                        credits = credits + amount
+                        balance = account_type*(debits - credits)
+            credits =  format_currency(credits)
+            debits = format_currency(debits)
+                
+            balance = format_currency(balance)
+            
+            chart_of_accounts_display_content.append([account_Id,account_Name,credits, debits, balance])
+        window['-Chart_of_Accounts_Content-'].update(chart_of_accounts_display_content)        
+
+
+#------------------------------------------Section 6 Window and Event Loop
+#░▒▓████████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓████████▓▒░ ░▒▓███████▓▒░  ░▒▓████████▓▒░       ░▒▓█▓▒░         ░▒▓██████▓▒░   ░▒▓██████▓▒░  ░▒▓███████▓▒░  
+#░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░           ░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ 
+#░▒▓█▓▒░         ░▒▓█▓▒▒▓█▓▒░  ░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░           ░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ 
+#░▒▓██████▓▒░    ░▒▓█▓▒▒▓█▓▒░  ░▒▓██████▓▒░   ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░           ░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓███████▓▒░  
+#░▒▓█▓▒░          ░▒▓█▓▓█▓▒░   ░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░           ░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░        
+#░▒▓█▓▒░          ░▒▓█▓▓█▓▒░   ░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░           ░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░        
+#░▒▓████████▓▒░    ░▒▓██▓▒░    ░▒▓████████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░           ░▒▓████████▓▒░  ░▒▓██████▓▒░   ░▒▓██████▓▒░  ░▒▓█▓▒░        
+                                                                                                                                        
 icb_session.window = sg.Window(title="Iceberg Accounting Suite", layout= layout1, margins=(10,10), resizable=True, size=(1280,980), finalize=True)
 event, values = icb_session.window.read(10)
 icb_session.console_log(f"""{icb_session.current_console_messages[0]}""",[])
@@ -1805,6 +2017,14 @@ while True:
                 else:
                     icb_session.window[tab_keys[i]].update(visible=False)
             update_dashboard_statistics(icb_session.window, values)
+        elif event == "-Account_Type_Picker-":
+            if values["-Account_Type_Picker-"] == "All Accounts":
+                update_chart_of_accounts(icb_session.window, values, "All Accounts")
+            else:
+                update_chart_of_accounts(icb_session.window, values, values["-Account_Type_Picker-"][:2])
+
+
+            
         elif event == "View Ledger" or event == "Search Transactions" or event == "New Transaction" or event == "-New_Transaction_Button-":
             this_tab_index = 1
             for i in range(len(tab_keys)):
@@ -1818,7 +2038,7 @@ while True:
                 this_layout, icb_session.num = new_transaction_layout(icb_session.num)
                 #print(this_layout, icb_session.num)
                 print("this_layout")
-                new_transaction_window = sg.Window(title="Record a New Transaction", location=(700,200),layout= this_layout, margins=(10,2), resizable=True, size=(810,460))
+                new_transaction_window = sg.Window(title="Record a New Transaction", location=(700,200),layout= this_layout, margins=(10,2), resizable=True, size=(920,460))
                 new_transaction_window.close_destroys_window = True
 
                 #TODO: Figure out how to update a popup window to remove an account from the list of accounts. 
@@ -1928,6 +2148,26 @@ while True:
                     icb_session.window[tab_keys[i]].select()
                 else:
                     icb_session.window[tab_keys[i]].update(visible=False)
+        elif event == "-New_Customer_Button-":
+                customer_number_query = f"""SELECT MAX(Customer_ID) FROM tbl_Customers;"""
+                new_customer_number = db.execute_read_query(icb_session.connection,customer_number_query)
+                #print(icb_session.customer_number)
+                #print(new_customer_number[0][0])
+                
+                if type(new_customer_number[0][0]) != int:
+                    icb_session.customer_number = int(0)
+                else:
+                    icb_session.customer_number = new_customer_number[0][0] + 1
+                this_layout, icb_session.num = new_customer_layout(icb_session.num,icb_session.customer_number)
+                #print(this_layout, icb_session.num)
+                new_customer_window = sg.Window(title="Add a Customer", location=(900,200),layout= this_layout, margins=(10,10), resizable=True, size=(480,500))
+                new_customer_window.close_destroys_window = True
+                event_newc, values_newc = new_customer_window.read(close=True)
+                values.update(values_newc)      
+                if event_newc == f"-Submit_Customer_Button_{icb_session.num}-":
+                    print(f"""Adding {values[f'-Customer_Name_{icb_session.num}-']}""")
+                    add_customer_to_database(icb_session.window,values)            
+
         elif event == "Invoicing" or event == 'Sell Inventory':
             this_tab_index = 5
             for i in range(len(tab_keys)):
@@ -1973,7 +2213,7 @@ while True:
             icb_session.connection = False
             this_layout, icb_session.num = open_database_layout(icb_session.num)
             #print(this_layout, icb_session.num)
-            new_database_window = sg.Window(title="Open a Database", location=(900,500),layout= this_layout, margins=(10,10), resizable=True, size=(480,600))
+            new_database_window = sg.Window(title="Open a Database", location=(900,500),layout= this_layout, margins=(10,10), resizable=True, size=(480,120))
             event_opendb, values_opendb = new_database_window.read(close=True)
             values.update(values_opendb)
             if event_opendb == f"-Open_Database_Button_{icb_session.num}-": 
