@@ -10,7 +10,7 @@ Currently, the software is capable of running encrypted bookkeeping databases wi
 
 
 
-## Installation
+## Installation (Linux)
 Download the entire respository from GitHub. Unzip the repository to your desired storage location. 
 
 1. Create a virtual environment in the folder in a hidden subfolder called ".venv".
@@ -32,10 +32,6 @@ Congratulations! Iceberg Accounting Suite has been installed on your system.
 
 
 ## Opening the Software
-
-There are several ways to start Iceberg. 
-
-### Linux
 
 #### Running from code (recommended):
 These instructions assume you've already installed the software according to the instructions in this document. If you already have your virtual environment active you can skip to step 3.
