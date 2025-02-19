@@ -11,6 +11,9 @@ Currently, the software is capable of running encrypted bookkeeping databases wi
 
 
 ## Installation (Linux)
+
+This software requires Python3 to run. Please follow the instructions here: https://www.python.org/downloads/
+
 Download the entire respository from GitHub. Unzip the repository to your desired storage location. 
 
 1. Create a virtual environment in the folder in a hidden subfolder called ".venv".
