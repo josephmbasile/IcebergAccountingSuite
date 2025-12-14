@@ -1,10 +1,16 @@
 cffi==1.17.0
 cryptography==43.0.0
+Deprecated==1.2.18
+img2pdf==0.6.0
+lxml==5.3.1
+packaging==24.2
 pdf2image==1.17.0
+pikepdf==9.5.2
 pillow==10.4.0
 pyasn1==0.6.0
 pycparser==2.22
-PySimpleGUI==5.0.6
+PySimpleGUI-4-foss==4.60.4.1
 python-dateutil==2.9.0.post0
 rsa==4.9
 six==1.16.0
+wrapt==1.17.2
