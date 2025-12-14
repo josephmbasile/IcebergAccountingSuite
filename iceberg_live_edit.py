@@ -3339,15 +3339,19 @@ while True:
                 #print(account_index[0])
                 window, chart_of_accounts_display_content = update_dashboard_statistics(icb_session.window, values)
                 #print(chart_of_accounts_display_content)
-                account_number = chart_of_accounts_display_content[account_index[0]][0]
-                this_tab_index = 8
-                for i in range(len(tab_keys)):
-                    if i == this_tab_index:
-                        icb_session.window[tab_keys[i]].update(visible=True)
-                        icb_session.window[tab_keys[i]].select()
-                    else:
-                        icb_session.window[tab_keys[i]].update(visible=False)
-                icb_session.window, values = load_view_account_tab(icb_session.window, values, account_number, icb_session.ledger_name)
+                try:
+                    account_number = chart_of_accounts_display_content[account_index[0]][0]
+                    this_tab_index = 8
+                    for i in range(len(tab_keys)):
+                        if i == this_tab_index:
+                            icb_session.window[tab_keys[i]].update(visible=True)
+                            icb_session.window[tab_keys[i]].select()
+                        else:
+                            icb_session.window[tab_keys[i]].update(visible=False)
+                    icb_session.window, values = load_view_account_tab(icb_session.window, values, account_number, icb_session.ledger_name)
+                except:
+                    pass
+
         elif event == "Database Properties":
             this_tab_index = 9
             for i in range(len(tab_keys)):
