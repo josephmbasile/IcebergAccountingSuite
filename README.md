@@ -116,7 +116,7 @@ A journal transaction can be created from the Ledger>View Ledger tab and selecti
 
    > Attach a receipt photo by selecting Select Image. (optional)
 
-   > Hit the submit button. If you filled out everything correctly the button will change to ask Really? Click the button again the save the transaction the datebase. The transaction will appear at the top of the ledger in the main window.
+   > Hit the submit button. If you filled out everything correctly the button will change to ask Really? Click the button again the save the transaction to the datebase. The transaction will appear at the top of the ledger in the main window.
 
 #### Editing a Transaction
 If you make a mistake while entering a transaction, you can edit it from the Ledger tab by selecting Ledger>View Ledger in the top menu.
