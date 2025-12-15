@@ -73,7 +73,7 @@ If you make a mistake when creating your database, you can update the database p
    > The properties will appear in editedable fields. Make changes and then select the Save Properties button. 
 
 ### Dashboard
-![The dashboard with sample data](1_dashboard.png)
+![The dashboard with sample data](assets/1_dashboard.png)
 
 #### Viewing the Chart of Accounts
 You can view your chart of accounts on the Dashboard tab by selecting Dashboard>Go to Dashboard from the top menu. The chart of accounts will populate in the panel on the right.
@@ -102,7 +102,7 @@ You can view your financial report on the Dashboard tab by selecting Dashboard>G
 
 ### Transactions
 #### Creating a Transaction
-![The add Transaction window](1_addtransaction.png)
+![The add Transaction window](assets/1_addtransaction.png)
 
 A journal transaction can be created from the Ledger>View Ledger tab and selecting the New Transaction button or by selecting Ledger>New Transaction directly from the top menu.
 
@@ -196,7 +196,7 @@ If you make a mistake while entering a service, you can edit it from the Service
 
 ### Invoices
 #### Creating an Invoice
-![The create invoice window](1_newinvoice.png)
+![The create invoice window](assets/1_newinvoice.png)
 
 You can generate invoices in pdf format using this software in order to sell your services. In order to create an Invoice, you need to add at least 1 Customer and at least 1 Service to the database following the instructions earlier in this document. You can create an invoice from the Point of Sale tab by selecting Customers>Point of Sale from the top menu and then selecting the New Invoice Button.
 
@@ -220,7 +220,7 @@ You can generate invoices in pdf format using this software in order to sell you
 
    > The printable invoice will open in your computer's primary pdf reader and its details will appear at the top of the invoice list in the main window.
 
-![A printable invoice in a pdf viewer](1_invoice.png)
+![A printable invoice in a pdf viewer](assets/1_invoice.png)
 
 The printable invoice is saved in the Invoices folder inside your Receipts folder. 
 
