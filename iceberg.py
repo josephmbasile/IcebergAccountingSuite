@@ -3895,5 +3895,6 @@ while True:
             
         
 icb_session.session_log_connection.close()
-icb_session.connection.close()
+if icb_session.connection:
+    icb_session.connection.close()
 icb_session.window.close()
