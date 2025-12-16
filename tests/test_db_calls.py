@@ -39,10 +39,6 @@ class TestDbCalls(unittest.TestCase):
         rows = db_calls.execute_read_query(self.conn, select_sql)
         self.assertIsNotNone(rows)
         self.assertEqual(len(rows), 1)
-        # Note: execute_read_query does NOT set row_factory, so it returns standard tuples if not set elsewhere on conn
-        # But wait, other methods modify conn.row_factory. 
-        # If tests run in random order, conn.row_factory might be set by other tests if we reused conn (but we create new conn in setUp).
-        # However, sqlite3 default is tuples.
         self.assertEqual(rows[0][1], 'Bob')
 
     def test_execute_read_query_dict(self):
