@@ -2651,7 +2651,7 @@ def update_database_properties(window,values):
         ["Business Name",f"{f"{values['-edit_db_name-']}".replace("'","''")}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Address",f"{f"{values['-Edit_Business_Address-']}".replace("'","''")}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Owner or Financial Officer Name",f"{values['-Edit_Business_Officer-']}".replace("'","''"),"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
-        ["Officer Title",f"{values['-Edit_Business_Officer_Title-']}".replace("'","''"),"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
+        ["Title or Position",f"{values['-Edit_Business_Officer_Title-']}".replace("'","''"),"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Phone Number",f"{values['-Edit_Business_Phone-']}".replace("'","''"),"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Email",f"{f"{values['-Edit_Business_Email-']}".replace("'","''")}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Notes",values[f"-Edit_Business_Notes-"],"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
