@@ -11,6 +11,7 @@ pyasn1==0.6.0
 pycparser==2.22
 PySimpleGUI-4-foss==4.60.4.1
 python-dateutil==2.9.0.post0
+pytest==9.0.2
 rsa==4.9
 six==1.16.0
 wrapt==1.17.2

@@ -35,6 +35,10 @@ Subsequent startups:
 
     > python3 iceberg.py
 
+### Running Tests
+
+    > pytest
+
 ### Accounting Databases
 #### Creating a Database
 Once the program has opened, the first step is to create a database from the File>New Database dropdown in the top menu. 
