@@ -174,6 +174,40 @@ business_income = "$0.00"
 sg.theme('LightBlue3')
 
 
+
+#import psutil
+
+#GUI Functions
+
+def configure_canvas(event, canvas, frame_id):
+    canvas.itemconfig(frame_id, width=canvas.winfo_width())
+
+def configure_frame(event, canvas):
+    canvas.configure(scrollregion=canvas.bbox("all"))
+
+def delete_widget(widget):
+    children = list(widget.children.values())
+    for child in children:
+        delete_widget(child)
+    widget.pack_forget()
+    widget.destroy()
+    del widget
+
+def new_rows():
+    global index
+    index += 1
+    layout_frame = [[sg.Text("Hello World"), sg.Push(), sg.Button('Delete', key=('Delete', index))]]
+    return [[sg.Frame(f"Frame {index:0>2d}", layout_frame, expand_x=True, key=('Frame', index))]]
+
+
+
+
+
+index = 0
+
+
+
+
 #░▒▓█▓▒░         ░▒▓██████▓▒░  ░▒▓█▓▒░░▒▓█▓▒░  ░▒▓██████▓▒░  ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓████████▓▒░ 
 #░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░     
 #░▒▓█▓▒░        ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓█▓▒░     
@@ -1856,7 +1890,9 @@ def update_customers_view(window, values):
             these_invoices = db.execute_read_query_dict(icb_session.connection, get_invoices_query)
             balance = 0
             for invoice in these_invoices:
-                balance = balance + int(dec(f"{f"{invoice["Total"]}".replace("$","")}".replace(",",""))*100)
+                total = f"{invoice["Total"]}".replace("$","")
+                total = f"{total}".replace(",","")
+                balance = balance + int(dec(total)*100)
             icb_session.customers.append([f"{customer['Customer_ID']}",f"{customer['Customer_Company_Name']}",f"{customer['Customer_First_Name']} {customer['Customer_Last_Name']}",f"{customer['Customer_Phone_Number']}",f"{customer['Customer_Email']}", f"{format_currency(balance)}"])
         icb_session.window["-View_Customers_Content-"].update(icb_session.customers)
         window['-Customer_Name_Input-'].update("")
@@ -2651,7 +2687,7 @@ def update_database_properties(window,values):
         ["Business Name",f"{f"{values['-edit_db_name-']}".replace("'","''")}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Address",f"{f"{values['-Edit_Business_Address-']}".replace("'","''")}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Owner or Financial Officer Name",f"{values['-Edit_Business_Officer-']}".replace("'","''"),"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
-        ["Title or Position",f"{values['-Edit_Business_Officer_Title-']}".replace("'","''"),"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
+        ["Officer Title",f"{values['-Edit_Business_Officer_Title-']}".replace("'","''"),"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Phone Number",f"{values['-Edit_Business_Phone-']}".replace("'","''"),"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Email",f"{f"{values['-Edit_Business_Email-']}".replace("'","''")}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Notes",values[f"-Edit_Business_Notes-"],"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
@@ -3542,7 +3578,16 @@ while True:
                     db.execute_query(icb_session.connection,update_invoice_query)
                     icb_session.this_invoice['Status'] = 'Overdue'
                     #print(icb_session.this_invoice)
-                    invoice_date = f"{f"{f"{f"{f"{f"{f"{icb_session.this_invoice['Created_Time'].replace('Monday, ','')}".replace('Tuesday, ','')}".replace('Wednesday, ','')}".replace('Thursday, ','')}".replace('Friday, ','')}".replace('Saturday, ','')}".replace('Sunday, ','')}"
+
+
+                    invoice_date = f"{icb_session.this_invoice['Created_Time'].replace('Monday, ','')}"
+                    invoice_date = f"{invoice_date.replace('Tuesday, ','')}"
+                    invoice_date = f"{invoice_date.replace('Wednesday, ','')}"
+                    invoice_date = f"{invoice_date.replace('Thursday, ','')}"
+                    invoice_date = f"{invoice_date.replace('Friday, ','')}"
+                    invoice_date = f"{invoice_date.replace('Saturday, ','')}"
+                    invoice_date = f"{invoice_date.replace('Sunday, ','')}"
+
                     search=re.search(r" ",invoice_date)
                     invoice_date = invoice_date[:search.start()]
                     icb_session.these_line_items = ast.literal_eval(icb_session.this_invoice['Line_Items'])
@@ -3600,7 +3645,13 @@ while True:
                                 update_invoice_query = f"""UPDATE tbl_Invoices SET Status = '{values[f'-POS_Status_Input-']}', Edited_Time = '{icb_session.current_time_display[0]}' WHERE Invoice_ID = {icb_session.this_invoice['Invoice_ID']};"""
                                 updated_invoice = db.execute_query(icb_session.connection,update_invoice_query)
                                 update_pos_view(icb_session.window,values)
-                                invoice_date = f"{f"{f"{f"{f"{f"{f"{icb_session.this_invoice['Created_Time'].replace('Monday, ','')}".replace('Tuesday, ','')}".replace('Wednesday, ','')}".replace('Thursday, ','')}".replace('Friday, ','')}".replace('Saturday, ','')}".replace('Sunday, ','')}"
+                                invoice_date = f"{icb_session.this_invoice['Created_Time'].replace('Monday, ','')}"
+                                invoice_date = f"{invoice_date.replace('Tuesday, ','')}"
+                                invoice_date = f"{invoice_date.replace('Wednesday, ','')}"
+                                invoice_date = f"{invoice_date.replace('Thursday, ','')}"
+                                invoice_date = f"{invoice_date.replace('Friday, ','')}"
+                                invoice_date = f"{invoice_date.replace('Saturday, ','')}"
+                                invoice_date = f"{invoice_date.replace('Sunday, ','')}"
                                 search=re.search(r" ",invoice_date)
                                 invoice_date = invoice_date[:search.start()]
                                 generate_new_invoice(icb_session.window,values, invoice_date)
@@ -3657,7 +3708,13 @@ while True:
                                 update_invoice_query = f"""UPDATE tbl_Invoices SET Status = '{values[f'-POS_Status_Input-']}', Edited_Time = '{icb_session.current_time_display[0]}' WHERE Invoice_ID = {icb_session.this_invoice['Invoice_ID']};"""
                                 updated_invoice = db.execute_query(icb_session.connection,update_invoice_query)
                                 update_pos_view(icb_session.window,values)
-                                invoice_date = f"{f"{f"{f"{f"{f"{f"{icb_session.this_invoice['Created_Time'].replace('Monday, ','')}".replace('Tuesday, ','')}".replace('Wednesday, ','')}".replace('Thursday, ','')}".replace('Friday, ','')}".replace('Saturday, ','')}".replace('Sunday, ','')}"
+                                invoice_date = f"{icb_session.this_invoice['Created_Time'].replace('Monday, ','')}"
+                                invoice_date = f"{invoice_date.replace('Tuesday, ','')}"
+                                invoice_date = f"{invoice_date.replace('Wednesday, ','')}"
+                                invoice_date = f"{invoice_date.replace('Thursday, ','')}"
+                                invoice_date = f"{invoice_date.replace('Friday, ','')}"
+                                invoice_date = f"{invoice_date.replace('Saturday, ','')}"
+                                invoice_date = f"{invoice_date.replace('Sunday, ','')}"
                                 search=re.search(r" ",invoice_date)
                                 invoice_date = invoice_date[:search.start()]
                                 generate_new_invoice(icb_session.window,values, invoice_date)
@@ -3712,7 +3769,14 @@ while True:
                         update_invoice_query = f"""UPDATE tbl_Invoices SET Status = '{values[f'-POS_Status_Input-']}', Edited_Time = '{icb_session.current_time_display[0]}' WHERE Invoice_ID = {icb_session.this_invoice['Invoice_ID']};"""
                         updated_invoice = db.execute_query(icb_session.connection,update_invoice_query)
                         update_pos_view(icb_session.window,values)
-                        invoice_date = f"{f"{f"{f"{f"{f"{f"{icb_session.this_invoice['Created_Time'].replace('Monday, ','')}".replace('Tuesday, ','')}".replace('Wednesday, ','')}".replace('Thursday, ','')}".replace('Friday, ','')}".replace('Saturday, ','')}".replace('Sunday, ','')}"
+                        invoice_date = f"{icb_session.this_invoice['Created_Time'].replace('Monday, ','')}"
+                        invoice_date = f"{invoice_date.replace('Tuesday, ','')}"
+                        invoice_date = f"{invoice_date.replace('Wednesday, ','')}"
+                        invoice_date = f"{invoice_date.replace('Thursday, ','')}"
+                        invoice_date = f"{invoice_date.replace('Friday, ','')}"
+                        invoice_date = f"{invoice_date.replace('Saturday, ','')}"
+                        invoice_date = f"{invoice_date.replace('Sunday, ','')}"
+                        
                         search=re.search(r" ",invoice_date)
                         invoice_date = invoice_date[:search.start()]
                         generate_new_invoice(icb_session.window,values, invoice_date)
