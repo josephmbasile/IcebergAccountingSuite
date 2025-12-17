@@ -2526,9 +2526,9 @@ def generate_new_invoice(new_invoice_window, values_newi, date):
 
 
     #Set text attributes
-    small_font = ImageFont.truetype('./LiberationSerif-Regular.ttf', 50)    
-    medium_font = ImageFont.truetype('./LiberationSerif-Regular.ttf', 70) 
-    large_font = ImageFont.truetype('./LiberationSerif-Regular.ttf', 100)             
+    small_font = ImageFont.truetype('./fonts/LiberationSerif-Regular.ttf', 50)    
+    medium_font = ImageFont.truetype('./fonts/LiberationSerif-Regular.ttf', 70) 
+    large_font = ImageFont.truetype('./fonts/LiberationSerif-Regular.ttf', 100)             
     test_canvas = Image.new('RGB', (2550, 3300), "white")
     test_draw = ImageDraw.Draw(test_canvas)
     canvas = Image.new('RGB', (2550, 3300), "white")
