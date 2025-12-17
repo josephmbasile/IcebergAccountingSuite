@@ -31,6 +31,10 @@ from PIL import ImageDraw, ImageFont
 import img2pdf
 import subprocess
 from iceberg_utils import get_current_time_info, format_currency, convert_dollars_to_cents, id_generator
+import logging
+from repository.property import PropertyRepository
+
+
 #------------------------------------------Section 1 Date Information
 
 sample_date = parser.parse('2023-04-02')
@@ -1344,23 +1348,8 @@ def create_database(values, current_console_messages,window, num, current_year):
 
 
     #8 Create the Properties Table
-    create_table_8_query = f"""CREATE TABLE tbl_Properties (Property_ID INTEGER NOT NULL"""
-    
-    lines = [   """, Property_Name VARCHAR(9999) NOT NULL""", 
-                """, Property_Value VARCHAR(9999) NOT NULL""", 
-                """, Property_Units VARCHAR(9999) NOT NULL""", 
-                """, Created_Time VARCHAR(9999) NOT NULL""", 
-                """, Edited_Time VARCHAR(9999) NOT NULL""" ,
-                """, PRIMARY KEY ("Property_ID" AUTOINCREMENT)"""
-            ]
-    num_lines = len(lines)
-    for p in range(num_lines):
-        create_table_8_query = create_table_8_query + lines[p]
-    create_table_8_query = create_table_8_query + """);"""
-
-
-    created_table = db.create_tables(icb_session.connection,create_table_8_query)
-    #print("Invoices_Table")
+    property_repo = PropertyRepository(icb_session.connection)
+    created_table = property_repo.create_table()
     print(created_table)
 
     #Create the properties
@@ -1377,29 +1366,17 @@ def create_database(values, current_console_messages,window, num, current_year):
     
     icb_session.receipts_location = values[f'-Business_Receipts_Repository_{num}-']
 
-    database_properties = [
-        ["Business Name",f"{icb_session.business_name}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
-        ["Address",f"{icb_session.business_address}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
-        ["Owner or Financial Officer Name",f"{icb_session.owner_name}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
-        ["Title or Position",f"{icb_session.owner_title}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
-        ["Phone Number",f"{icb_session.owner_phone}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
-        ["Email",f"{icb_session.owner_email}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
-        ["Notes",f"{icb_session.owner_notes}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
-        ["EIN or SSN",f"{icb_session.business_ein}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
-        ["Receipts Repository Location",f"{icb_session.receipts_location}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
-        ["Ledger Name",icb_session.ledger_name,"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
-        ["Sales Tax",f"{icb_session.sales_tax}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
-
-    ]
-
-    for property in database_properties:
-        create_properties_query = f"""INSERT INTO tbl_Properties (Property_Name, Property_Value, Property_Units,Created_Time, Edited_Time)
-            VALUES(("{property[0]}"),("{property[1]}"),("{property[2]}"),("{property[3]}"),("{property[4]}"));
-        """
-        #print(create_default_accounts_query)
-        created_property = db.execute_query(icb_session.connection,create_properties_query)
-        #print(create_properties_query)
-        print(created_property)
+    property_repo.insert("Business Name", icb_session.business_name, "", icb_session.current_time_display[0], icb_session.current_time_display[0])
+    property_repo.insert("Address", icb_session.business_address, "", icb_session.current_time_display[0], icb_session.current_time_display[0])
+    property_repo.insert("Owner or Financial Officer Name", icb_session.owner_name, "", icb_session.current_time_display[0], icb_session.current_time_display[0])
+    property_repo.insert("Title or Position", icb_session.owner_title, "", icb_session.current_time_display[0], icb_session.current_time_display[0])
+    property_repo.insert("Phone Number", icb_session.owner_phone, "", icb_session.current_time_display[0], icb_session.current_time_display[0])
+    property_repo.insert("Email", icb_session.owner_email, "", icb_session.current_time_display[0], icb_session.current_time_display[0])
+    property_repo.insert("Notes", icb_session.owner_notes, "", icb_session.current_time_display[0], icb_session.current_time_display[0])
+    property_repo.insert("EIN or SSN", icb_session.business_ein, "", icb_session.current_time_display[0], icb_session.current_time_display[0])
+    property_repo.insert("Receipts Repository Location", icb_session.receipts_location, "", icb_session.current_time_display[0], icb_session.current_time_display[0])
+    property_repo.insert("Ledger Name", icb_session.ledger_name, "", icb_session.current_time_display[0], icb_session.current_time_display[0])
+    property_repo.insert("Sales Tax", icb_session.sales_tax, "", icb_session.current_time_display[0], icb_session.current_time_display[0])
 
     icb_session.current_console_messages = icb_session.console_log(message=f"Saved database properties for {icb_session.business_name}. Owner: {icb_session.owner_name}",current_console_messages=icb_session.current_console_messages)
 
@@ -1649,33 +1626,21 @@ def load_database_properties_tab(window, values, connection):
         print("Error: load_database_properties_tab did not execute. Not connected to database.")
     else:
 
-        retrieve_properties_query = f"""SELECT * FROM tbl_Properties"""
+        property_repo = PropertyRepository(connection)
 
-        current_properties = db.execute_read_query_dict(connection, retrieve_properties_query)
-        #print(current_properties)
-        for property in current_properties:
-            property_name = property['Property_Name']
-            property_value = property['Property_Value']
-            if property_name == "Business Name":
-                window['-edit_db_name-'].update(property_value)
-            elif property_name == "Address":
-                window['-Edit_Business_Address-'].update(property_value)
-            elif property_name == "Owner or Financial Officer Name":
-                window['-Edit_Business_Officer-'].update(property_value)
-            elif property_name == "Title or Position":
-                window['-Edit_Business_Officer_Title-'].update(property_value)
-            elif property_name == "Phone Number":
-                window['-Edit_Business_Phone-'].update(property_value)
-            elif property_name == "Email":
-                window['-Edit_Business_Email-'].update(property_value)
-            elif property_name == "Notes":
-                window['-Edit_Business_Notes-'].update(property_value)
-            elif property_name == "EIN or SSN":
-                window['-Edit_Business_EIN-'].update(property_value)
-            elif property_name == "Receipts Repository Location":
-                window['-Edit_Receipts_Repository-'].update(property_value)
-            elif property_name == "Sales Tax":
-                window['-Edit_Sales_Tax-'].update(f"{dec(property_value)*100}")
+        window['-edit_db_name-'].update(property_repo.get("Business Name") or "")
+        window['-Edit_Business_Address-'].update(property_repo.get("Address") or "")
+        window['-Edit_Business_Officer-'].update(property_repo.get("Owner or Financial Officer Name") or "")
+        window['-Edit_Business_Officer_Title-'].update(property_repo.get("Title or Position") or "")
+        window['-Edit_Business_Phone-'].update(property_repo.get("Phone Number") or "")
+        window['-Edit_Business_Email-'].update(property_repo.get("Email") or "")
+        window['-Edit_Business_Notes-'].update(property_repo.get("Notes") or "")
+        window['-Edit_Business_EIN-'].update(property_repo.get("EIN or SSN") or "")
+        window['-Edit_Receipts_Repository-'].update(property_repo.get("Receipts Repository Location") or "")
+        
+        sales_tax = property_repo.get("Sales Tax")
+        if sales_tax:
+            window['-Edit_Sales_Tax-'].update(f"{dec(sales_tax)*100}")
 
 def load_view_account_tab(window, values, account_number, ledger_name):
     """Loads the selected account from the chart of accounts."""
@@ -2471,40 +2436,22 @@ def generate_new_invoice(new_invoice_window, values_newi, date):
 
 
     #Get the organization Name
-    get_org_name_query = f"""SELECT Property_Value FROM tbl_Properties WHERE Property_Name IS 'Business Name';"""
-    this_org = db.execute_read_query_dict(icb_session.connection,get_org_name_query)
-    this_org_name = ""
-    if this_org != [] and type(this_org) == list:
-        this_org_name = this_org[0]['Property_Value']
+    property_repo = PropertyRepository(icb_session.connection)
+
+    #Get the organization Name
+    this_org_name = property_repo.get('Business Name') or ""
 
      #Get the organization CEO
-    get_org_ceo_query = f"""SELECT Property_Value FROM tbl_Properties WHERE Property_Name IS 'Owner or Financial Officer Name';"""
-    this_org = db.execute_read_query_dict(icb_session.connection,get_org_ceo_query)
-    this_org_ceo = ""
-    if this_org != [] and type(this_org) == list:
-        this_org_ceo = this_org[0]['Property_Value']   
-
+    this_org_ceo = property_repo.get('Owner or Financial Officer Name') or ""
 
      #Get the organization Address
-    get_org_address_query = f"""SELECT Property_Value FROM tbl_Properties WHERE Property_Name IS 'Address';"""
-    this_org = db.execute_read_query_dict(icb_session.connection,get_org_address_query)
-    this_org_address = ""
-    if this_org != [] and type(this_org) == list:
-        this_org_address = this_org[0]['Property_Value']   
+    this_org_address = property_repo.get('Address') or ""
 
      #Get the organization Email
-    get_org_email_query = f"""SELECT Property_Value FROM tbl_Properties WHERE Property_Name IS 'Email';"""
-    this_org = db.execute_read_query_dict(icb_session.connection,get_org_email_query)
-    this_org_email= ""
-    if this_org != [] and type(this_org) == list:
-        this_org_email = this_org[0]['Property_Value']  
+    this_org_email = property_repo.get('Email') or ""
 
      #Get the organization Phone
-    get_org_phone_query = f"""SELECT Property_Value FROM tbl_Properties WHERE Property_Name IS 'Phone Number';"""
-    this_org = db.execute_read_query_dict(icb_session.connection,get_org_phone_query)
-    this_org_phone = ""
-    if this_org != [] and type(this_org) == list:
-        this_org_phone = this_org[0]['Property_Value']   
+    this_org_phone = property_repo.get('Phone Number') or ""
 
     #Get the customer
     get_customer_query = f"""SELECT * FROM tbl_Customers WHERE Customer_ID = '{icb_session.this_invoice['Customer_ID']}';"""
@@ -2695,9 +2642,9 @@ def update_database_properties(window,values):
         ["Receipts Repository Location",values[f"-Edit_Receipts_Repository-"],"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Sales Tax",icb_session.sales_tax,"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
     ]    
+    property_repo = PropertyRepository(icb_session.connection)
     for db_property in database_properties:
-        set_properties_query= f"""UPDATE tbl_Properties SET Property_Value = '{db_property[1]}', Edited_Time = '{db_property[3]}' WHERE Property_Name = '{db_property[0]}';"""
-        updated_properties = db.execute_query(icb_session.connection,set_properties_query)
+        updated_properties = property_repo.update(db_property[0], db_property[1], db_property[3])
         icb_session.console_log(f"Query executed: {updated_properties}",icb_session.current_console_messages)
 
 
@@ -2966,52 +2913,28 @@ while True:
 
 
                 
-                get_ledgers_query = f"""SELECT Property_Value FROM tbl_Properties WHERE Property_Name IS 'Ledger Name';"""
-                this_ledger = db.execute_read_query_dict(icb_session.connection,get_ledgers_query)
-                #print(this_ledger)
-                icb_session.ledger_name = this_ledger[0]['Property_Value']
+                #Load the database properties
+                property_repo = PropertyRepository(icb_session.connection)
+                icb_session.ledger_name = property_repo.get('Ledger Name') or ""
                 #Log to console
                 icb_session.current_console_messages = icb_session.console_log(f"Filekey Read: {icb_session.filename}", icb_session.current_console_messages)
                 icb_session.current_console_messages = icb_session.console_log(f"Database Opened: {icb_session.db_name}", icb_session.current_console_messages)
                 icb_session.current_console_messages = icb_session.console_log("Dashboard statistics updated.", icb_session.current_console_messages)
 
                 #Load the database properties
-                get_business_name_query = f"""SELECT Property_Value FROM tbl_Properties WHERE Property_Name IS 'Business Name';"""
-                this_business_name = db.execute_read_query_dict(icb_session.connection,get_business_name_query)
-                icb_session.business_name = this_business_name[0]['Property_Value']
 
-                get_business_address_query = f"""SELECT Property_Value FROM tbl_Properties WHERE Property_Name IS 'Address';"""
-                this_business_address = db.execute_read_query_dict(icb_session.connection,get_business_address_query)
-                icb_session.business_address = this_business_address[0]['Property_Value']
-
-                get_business_owner_query = f"""SELECT Property_Value FROM tbl_Properties WHERE Property_Name IS 'Owner or Financial Officer Name';"""
-                this_business_owner = db.execute_read_query_dict(icb_session.connection,get_business_owner_query)                
-                icb_session.owner_name = this_business_owner[0]['Property_Value']
-
-                get_business_title_query = f"""SELECT Property_Value FROM tbl_Properties WHERE Property_Name IS 'Title or Position';"""
-                this_business_title = db.execute_read_query_dict(icb_session.connection,get_business_title_query)  
-                icb_session.owner_title = this_business_title[0]['Property_Value']
-
-                get_business_phone_query = f"""SELECT Property_Value FROM tbl_Properties WHERE Property_Name IS 'Phone Number';"""
-                this_business_phone = db.execute_read_query_dict(icb_session.connection,get_business_phone_query)  
-                icb_session.owner_phone = this_business_phone[0]['Property_Value']
-
-                get_business_email_query = f"""SELECT Property_Value FROM tbl_Properties WHERE Property_Name IS 'Email';"""
-                this_business_email = db.execute_read_query_dict(icb_session.connection,get_business_email_query) 
-                icb_session.owner_email = this_business_email[0]['Property_Value']
-
-                get_business_notes_query = f"""SELECT Property_Value FROM tbl_Properties WHERE Property_Name IS 'Notes';"""
-                this_business_notes = db.execute_read_query_dict(icb_session.connection,get_business_notes_query)                 
-                icb_session.owner_notes = this_business_notes[0]['Property_Value']
-
-                get_business_ein_query = f"""SELECT Property_Value FROM tbl_Properties WHERE Property_Name IS 'EIN or SSN';"""
-                this_business_ein = db.execute_read_query_dict(icb_session.connection,get_business_ein_query) 
-                icb_session.business_ein = this_business_ein[0]['Property_Value']
-
-                get_business_salestax_query = f"""SELECT Property_Value FROM tbl_Properties WHERE Property_Name IS 'Sales Tax';"""
-                this_business_salestax = db.execute_read_query_dict(icb_session.connection,get_business_salestax_query) 
-                if this_business_salestax != []:
-                    icb_session.sales_tax = dec(this_business_salestax[0]['Property_Value'])
+                icb_session.business_name = property_repo.get('Business Name') or ""
+                icb_session.business_address = property_repo.get('Address') or ""
+                icb_session.owner_name = property_repo.get('Owner or Financial Officer Name') or ""
+                icb_session.owner_title = property_repo.get('Title or Position') or ""
+                icb_session.owner_phone = property_repo.get('Phone Number') or ""
+                icb_session.owner_email = property_repo.get('Email') or ""
+                icb_session.owner_notes = property_repo.get('Notes') or ""
+                icb_session.business_ein = property_repo.get('EIN or SSN') or ""
+                
+                sales_tax_value = property_repo.get('Sales Tax')
+                if sales_tax_value:
+                    icb_session.sales_tax = dec(sales_tax_value)
 
 
 
