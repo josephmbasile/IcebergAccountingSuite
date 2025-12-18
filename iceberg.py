@@ -32,9 +32,11 @@ import img2pdf
 import subprocess
 from iceberg_utils import get_current_time_info, format_currency, convert_dollars_to_cents, id_generator
 import logging
-from repository import PropertyRepository, VendorRepository
+
+from repository import PropertyRepository, VendorRepository, SkuRepository
 
 
+logging.basicConfig(level=logging.DEBUG)
 #------------------------------------------Section 1 Date Information
 
 sample_date = parser.parse('2023-04-02')
@@ -1338,26 +1340,8 @@ def create_database(values, current_console_messages,window, num, current_year):
 
 
     #9 Create the SKU Table
-    create_table_9_query = f"""CREATE TABLE tbl_Skus (Sku_ID INTEGER NOT NULL"""
-    
-    lines = [   """, Sku VARCHAR(24) NOT NULL UNIQUE""",
-                """, Created_Time VARCHAR(9999) NOT NULL""", 
-                """, Edited_Time VARCHAR(9999) NOT NULL""" ,
-                """, Description VARCHAR(9999) NOT NULL""",
-                """, Long_Description VARCHAR(9999) NOT NULL""",
-                """, Price INT(16) NOT NULL""",
-                """, Taxable VARCHAR(9999) NOT NULL""", #True or False
-                """, Inventory VARCHAR(9999) NOT NULL""", #True or False
-                """, Type VARCHAR(9999) NOT NULL""", #Product or Service
-                """, PRIMARY KEY ("Sku_ID" AUTOINCREMENT)"""
-            ]
-    num_lines = len(lines)
-    for p in range(num_lines):
-        create_table_9_query = create_table_9_query + lines[p]
-    create_table_9_query = create_table_9_query + """);"""
-
-
-    created_table = db.create_tables(icb_session.connection,create_table_9_query)
+    sku_repo = SkuRepository(icb_session.connection)
+    created_table = sku_repo.create_table()
     #print("SKU_Table")
     print(created_table)
 
@@ -2247,18 +2231,16 @@ def add_service_to_database(window,values):
     add_service_price= convert_dollars_to_cents(values[f"""-Service_Price_{icb_session.num}-"""])
     add_service_taxable = values[f"""-Service_Taxable_{icb_session.num}-"""]
 
-    add_service_query = f"""INSERT INTO tbl_Skus (Sku, Description,  Long_Description, Price, Taxable, Inventory, Type, Created_Time, Edited_Time)
-    VALUES ('{add_service_number}','{add_service_description.replace("'","''")}',"{add_service_long_description}","{add_service_price}","{add_service_taxable}","False","Service","{current_time[1]}","{current_time[1]}");"""
-
-    added_service = db.execute_query(icb_session.connection,add_service_query)
+    sku_repo = SkuRepository(icb_session.connection)
+    added_service = sku_repo.insert(add_service_number, add_service_description.replace("'","''"), add_service_long_description, add_service_price, add_service_taxable, "False", "Service", current_time[1], current_time[1])
 
     icb_session.current_console_messages = icb_session.console_log(f"Added Service {add_service_number}: {added_service}",icb_session.current_console_messages)
 
 def load_services_tab(window,values):
     """Refreshes the services view panel."""
     search_term = values['-Services_Search_Input-']
-    get_services_query = f"""SELECT * FROM tbl_Skus WHERE Sku LIKE '%{search_term}%' OR Description LIKE '%{search_term}%' OR Long_Description LIKE '%{search_term}%' OR Price LIKE '%{search_term}%' OR Taxable LIKE '%{search_term}%' AND Inventory LIKE '%{"""False"""}%' AND Type LIKE '%{"""Service"""}%';"""
-    services = db.execute_read_query_dict(icb_session.connection,get_services_query)
+    sku_repo = SkuRepository(icb_session.connection)
+    services = sku_repo.get_services(search_term)
     #print(services)
     if type(services) == list:
         icb_session.services= []        
@@ -2279,8 +2261,8 @@ def load_services_tab(window,values):
 
 def load_single_service(window, values, service_id):
     """Loads a single service into the side panel."""
-    this_service_query = f"""Select * FROM tbl_Skus WHERE Sku = '{service_id[0]}';"""
-    retrieved_service = db.execute_read_query_dict(icb_session.connection,this_service_query)
+    sku_repo = SkuRepository(icb_session.connection)
+    retrieved_service = [sku_repo.get_by_sku(service_id[0])]
     if type(retrieved_service) == str:
         print(retrieved_service)
     else:  
@@ -2358,8 +2340,9 @@ def populate_invoice_totals(new_invoice_window,values_newi):
         this_invoice_subtotal = this_line_total + this_invoice_subtotal
 
         this_line_sku = line_item[0]
-        get_taxable_query = f"""SELECT Taxable FROM tbl_Skus WHERE Sku = '{this_line_sku}';"""
-        this_line_taxable = db.execute_read_query_dict(icb_session.connection,get_taxable_query)[0]['Taxable']
+        sku_repo = SkuRepository(icb_session.connection)
+        this_sku = sku_repo.get_by_sku(this_line_sku)
+        this_line_taxable = this_sku['Taxable'] if this_sku else "False"
         #print(this_line_taxable)
         if this_line_taxable == "True":
             this_sales_tax = int(dec(line_item[4][1:].replace(",",""))*100)*sales_tax_dec
@@ -2376,18 +2359,9 @@ def populate_invoice_totals(new_invoice_window,values_newi):
 
 def generate_new_invoice(new_invoice_window, values_newi, date):
 
-    
-    
     #this_invoice_id = icb_session.this_invoice['Invoice_ID']
     extra_whitespace = "    "
     #this_invoice_text = icb_session.this_invoice['Line_Items']
-            
-
-
-
-
-
-
 
     #Get the organization Name
     property_repo = PropertyRepository(icb_session.connection)
@@ -2611,8 +2585,9 @@ def update_sku(window,values):
     this_long_description = values["-Service_Notes_Display-"]
 
 
-    update_sku_query = f"""UPDATE tbl_Skus SET Edited_Time = '{icb_session.current_time_display[0]}', Description = "{this_description}", Long_Description = "{this_long_description}", Price = {int(dec(f"{f"{this_price}".replace("$","")}".replace(",",""))*100)}, Taxable = '{this_taxable}' WHERE Sku = '{this_sku}';"""
-    this_updated_sku = db.execute_query(icb_session.connection,update_sku_query)
+    sku_repo = SkuRepository(icb_session.connection)
+    price_val = int(dec(f"{f'{this_price}'.replace('$','')}".replace(',',''))*100)
+    this_updated_sku = sku_repo.update(this_sku, this_description, this_long_description, price_val, this_taxable, icb_session.current_time_display[0])
     icb_session.console_log(this_updated_sku,icb_session.current_console_messages)
     
 def update_customer(window,values):
@@ -2842,9 +2817,7 @@ while True:
 
                 #print(f"1053 filename: {icb_session.filename}")
 
-                
-                
-                
+
                 remove_to = db_name_0[::-1].index("/")
                 #print("1042")
                 icb_session.db_name = db_name_0[-remove_to:]
@@ -2862,10 +2835,6 @@ while True:
                     icb_session.filekey = file.read()
                 #print(f"1049 filekey: {icb_session.filekey}; db_name: {icb_session.db_name}; save_location: {icb_session.save_location}")
                 icb_session.connection, icb_session.filekey = db.open_database(icb_session.filename, icb_session.db_name, icb_session.save_location)
-                
-
-
-
                 
                 #Load the database properties
                 property_repo = PropertyRepository(icb_session.connection)
@@ -3238,8 +3207,9 @@ while True:
                     icb_session.window[tab_keys[i]].update(visible=False)
             load_services_tab(icb_session.window, values)   
             if event == "New Service" or event == "-New_Service_Button-":
-                service_number_query = f"""SELECT MAX(Sku) FROM tbl_Skus;"""
-                new_service_number = db.execute_read_query(icb_session.connection,service_number_query)
+                sku_repo = SkuRepository(icb_session.connection)
+                max_sku = sku_repo.get_max_sku()
+                new_service_number = [(max_sku,)]
                 print(f"New service {new_service_number[0][0]}")
                 #print(new_customer_number[0][0])
                 
@@ -3362,8 +3332,8 @@ while True:
                 elif event_newi == f"-Invoice_Search_Input_{icb_session.num}-":
 
                     search_term = values_newi[f"-Invoice_Search_Input_{icb_session.num}-"]
-                    sku_search_query = f"""SELECT Sku, Description, Price, Taxable FROM tbl_Skus WHERE Sku_ID LIKE '%{search_term}%' OR Sku LIKE '%{search_term}%' OR Description LIKE '%{search_term}%' OR Long_Description LIKE '%{search_term}%';"""
-                    skus = db.execute_read_query_dict(icb_session.connection,sku_search_query)
+                    sku_repo = SkuRepository(icb_session.connection)
+                    skus = sku_repo.search(search_term)
                     #new_transaction_window[f"-Transaction_Date_{icb_session.num}-"].update(icb_session.transaction_date)
                     icb_session.these_skus = []
                     for sku in skus:
@@ -3376,8 +3346,8 @@ while True:
                             this_sku_index = values_newi[f"-Invoice_Search_Content_{icb_session.num}-"]
                             #print(f"""{this_sku_index[0]}""")
                             this_sku_id = icb_session.these_skus[this_sku_index[0]][0]
-                            get_sku_query = f"""SELECT * FROM tbl_Skus WHERE Sku = '{this_sku_id}';"""
-                            this_sku = db.execute_read_query_dict(icb_session.connection,get_sku_query)[0]
+                            sku_repo = SkuRepository(icb_session.connection)
+                            this_sku = sku_repo.get_by_sku(this_sku_id)
                             this_line_item = [f"{this_sku['Sku']}",f"{this_sku['Description']}",f"{format_currency(this_sku['Price'])}",f"{quantity}",format_currency(quantity*int(this_sku['Price']))]
                             if len(icb_session.these_line_items)<10:
                                 icb_session.these_line_items.append(this_line_item)
