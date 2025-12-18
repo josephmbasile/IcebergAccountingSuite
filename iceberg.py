@@ -1326,8 +1326,8 @@ def update_dashboard_statistics(window, values):
             window[tab_keys[i]].update(visible=False)
     #Set the time range (default = current YTD)
     #current_year = datetime.datetime.now().year
-    start_date = f"{(icb_session.current_year)}-01-01"
-    end_date = f"{(icb_session.current_year)+1}-01-01"
+    #start_date = f"{(icb_session.current_year)}-01-01"
+    #end_date = f"{(icb_session.current_year)+1}-01-01"
 
     #Read the database
     read_ledger_query = f"""SELECT * FROM {icb_session.ledger_name} ORDER BY Transaction_Date;""" # WHERE Transaction_Date >= '{start_date}' AND Transaction_Date < '{end_date}'
@@ -1341,37 +1341,8 @@ def update_dashboard_statistics(window, values):
     accounts = repo.get_all()
     #print(accounts)
     #Create and display the chart of accounts.
-    chart_of_accounts_display_content = []
-    for account in accounts:
-        account_type = 1
-        account_Id = str(account['Account_ID'])
-        account_Name = str(account['Name'])
-        #print(account_Id)
-        if int(account_Id[1]) >= 3:
-            account_type = int(-1)
-        credits = 0
-        debits = 0
-        balance = 0
-        if current_year_ledger:
-            for transaction in current_year_ledger:
-                transaction_Id = transaction['Transaction_ID']
-                debit_account = transaction['Debit_Acct']
-                credit_account = transaction['Credit_Acct']
-                amount = transaction['Amount']
-                if debit_account == account_Id:
-                    debits = debits + amount
-                    balance = account_type*(debits - credits)
-                elif credit_account == account_Id:
-                    credits = credits + amount
-                    balance = account_type*(debits - credits)
-        credits =  format_currency(credits)
-        debits = format_currency(debits)
-              
-        balance = format_currency(balance)
-        
-        chart_of_accounts_display_content.append([account_Id,account_Name,credits, debits, balance])
-    window['-Chart_of_Accounts_Content-'].update(chart_of_accounts_display_content)
-    window["-Account_Type_Picker-"].update("All Accounts")
+
+
     #Create and display the key dashboard outputs
     total_debits = 0
     total_credits = 0
@@ -1479,7 +1450,7 @@ def update_dashboard_statistics(window, values):
     
     window["-Chart_Of_Accounts_Header-"].update(f"{icb_session.db_name[:-4]} Loaded")
 
-    #latest_year = window["-Year_Picker-"].values[-1] #Comment out the year picker
+    latest_year = window["-Account_Year_Picker-"].Values[-1] #Comment out the year picker
 
     years = ["All Years"]
 
@@ -1492,7 +1463,12 @@ def update_dashboard_statistics(window, values):
         if already_year == False:
             years.append(this_year)
     #print(years)
-    window['-Account_Year_Picker-'].update("All Years", values=years)
+    window['-Account_Year_Picker-'].update(latest_year, values=years)
+    acct_types = values['-Account_Type_Picker-'][:2]
+    year = values['-Account_Year_Picker-']
+    chart_of_accounts_display_content = update_chart_of_accounts(window, values, acct_types, year)
+
+
     return window, chart_of_accounts_display_content
 
 
@@ -2027,68 +2003,68 @@ def add_account_to_database(values):
         icb_session.current_console_messages = icb_session.console_log(message=created_account,current_console_messages=icb_session.current_console_messages)
         print(created_account)
     else:
-        icb_session.current_console_messages = icb_session.console_log(message=account_count,current_console_messages=icb_session.current_console_messages)
+        icb_session.current_console_messages = icb_session.console_log(message=account_count_val,current_console_messages=icb_session.current_console_messages)
 
 
 def update_chart_of_accounts(window, values, acct_types, year):
-    if acct_types == "All Accounts" and year == 'All Years':
-        update_dashboard_statistics(window,values)
+    #if acct_types == "All Accounts" and year == 'All Years':
+    #    update_dashboard_statistics(window,values)
+    #else:
+    if acct_types == "Al":
+        acct_types = ""
+    read_ledger_query = f"""SELECT * FROM {icb_session.ledger_name} WHERE Credit_Acct LIKE '{acct_types}%' """
+    #Read the database
+    if year != "All Years" and acct_types == "11" or year != "All Years" and acct_types == "12" or year != "All Years" and acct_types == "15":
+        #print(year)
+        read_ledger_query = read_ledger_query + f""" AND Transaction_Date >= '{year}-01-01' AND Transaction_Date <= '{year}-12-31' OR Debit_Acct LIKE '{acct_types}%' AND Transaction_Date >= '{year}-01-01' AND Transaction_Date <= '{year}-12-31';"""
+    elif year != "All Years" and acct_types == "10" or year != "All Years" and acct_types == "13" or year != "All Years" and acct_types == "14" or year != "All Years" and acct_types == "":
+        read_ledger_query = read_ledger_query + f""" AND Transaction_Date <= '{year}-12-31' OR Debit_Acct LIKE '{acct_types}%' AND Transaction_Date <= '{year}-12-31';"""        
     else:
-        if acct_types == "All Accounts":
-            acct_types = ""
-        read_ledger_query = f"""SELECT * FROM {icb_session.ledger_name} WHERE Credit_Acct LIKE '{acct_types}%' """
-        #Read the database
-        if year != "All Years" and acct_types == "11" or year != "All Years" and acct_types == "12" or year != "All Years" and acct_types == "15":
-            #print(year)
-            read_ledger_query = read_ledger_query + f""" AND Transaction_Date >= '{year}-01-01' AND Transaction_Date <= '{year}-12-31' OR Debit_Acct LIKE '{acct_types}%' AND Transaction_Date >= '{year}-01-01' AND Transaction_Date <= '{year}-12-31';"""
-        elif year != "All Years" and acct_types == "10" or year != "All Years" and acct_types == "13" or year != "All Years" and acct_types == "14" or year != "All Years" and acct_types == "":
-            read_ledger_query = read_ledger_query + f""" AND Transaction_Date <= '{year}-12-31' OR Debit_Acct LIKE '{acct_types}%' AND Transaction_Date <= '{year}-12-31';"""        
-        else:
-            read_ledger_query = read_ledger_query + f"""OR Debit_Acct LIKE '{acct_types}%';"""
+        read_ledger_query = read_ledger_query + f"""OR Debit_Acct LIKE '{acct_types}%';"""
 
-        #read_ledger_query = f"""SELECT * FROM {icb_session.ledger_name};""" # WHERE Transaction_Date >= '{start_date}' AND Transaction_Date < '{end_date}'
-        #print(read_ledger_query)
-        current_year_ledger = db.execute_read_query_dict(icb_session.connection, read_ledger_query)
-        #print(type(current_year_ledger))
-        #print(f"read the ledger: {current_year_ledger}")
-        if type(current_year_ledger) == str:
-            current_year_ledger = False
-        repo = AccountRepository(icb_session.connection)
-        accounts = repo.get_by_type_prefix(acct_types)
-        #print(accounts)
-        #Create and display the chart of accounts.
-        chart_of_accounts_display_content = []
-        for account in accounts:
-            account_type = 1
-            account_Id = str(account['Account_ID'])
-            account_Name = str(account['Name'])
-            account_category = f"{account['Account_ID']}"[:2]
-            #print(account_Id)
-            if int(account_Id[1]) >= 3:
-                account_type = int(-1)
-            credits = 0
-            debits = 0
-            balance = 0
-            if current_year_ledger:
-                for transaction in current_year_ledger:
-                    transaction_Id = transaction['Transaction_ID']
-                    debit_account = transaction['Debit_Acct']
-                    credit_account = transaction['Credit_Acct']
-                    amount = transaction['Amount']
-                    if debit_account == account_Id and transaction['Transaction_Date'][:4] == year or debit_account == account_Id and year == "All Years" or debit_account == account_Id and account_category == "10" or debit_account == account_Id and account_category == "13" or debit_account == account_Id and account_category == "14":
-                        debits = debits + amount
-                        balance = account_type*(debits - credits)
-                    elif credit_account == account_Id and transaction['Transaction_Date'][:4] == year or credit_account == account_Id and year == "All Years" or credit_account == account_Id and account_category == "10" or credit_account == account_Id and account_category == "13" or credit_account == account_Id and account_category == "14":
-                        credits = credits + amount
-                        balance = account_type*(debits - credits)
-            credits =  format_currency(credits)
-            debits = format_currency(debits)
-                
-            balance = format_currency(balance)
+    #read_ledger_query = f"""SELECT * FROM {icb_session.ledger_name};""" # WHERE Transaction_Date >= '{start_date}' AND Transaction_Date < '{end_date}'
+    #print(read_ledger_query)
+    current_year_ledger = db.execute_read_query_dict(icb_session.connection, read_ledger_query)
+    #print(type(current_year_ledger))
+    #print(f"read the ledger: {current_year_ledger}")
+    if type(current_year_ledger) == str:
+        current_year_ledger = False
+    repo = AccountRepository(icb_session.connection)
+    accounts = repo.get_by_type_prefix(acct_types)
+    #print(accounts)
+    #Create and display the chart of accounts.
+    chart_of_accounts_display_content = []
+    for account in accounts:
+        account_type = 1
+        account_Id = str(account['Account_ID'])
+        account_Name = str(account['Name'])
+        account_category = f"{account['Account_ID']}"[:2]
+        #print(account_Id)
+        if int(account_Id[1]) >= 3:
+            account_type = int(-1)
+        credits = 0
+        debits = 0
+        balance = 0
+        if current_year_ledger:
+            for transaction in current_year_ledger:
+                transaction_Id = transaction['Transaction_ID']
+                debit_account = transaction['Debit_Acct']
+                credit_account = transaction['Credit_Acct']
+                amount = transaction['Amount']
+                if debit_account == account_Id and transaction['Transaction_Date'][:4] == year or debit_account == account_Id and year == "All Years" or debit_account == account_Id and account_category == "10" or debit_account == account_Id and account_category == "13" or debit_account == account_Id and account_category == "14":
+                    debits = debits + amount
+                    balance = account_type*(debits - credits)
+                elif credit_account == account_Id and transaction['Transaction_Date'][:4] == year or credit_account == account_Id and year == "All Years" or credit_account == account_Id and account_category == "10" or credit_account == account_Id and account_category == "13" or credit_account == account_Id and account_category == "14":
+                    credits = credits + amount
+                    balance = account_type*(debits - credits)
+        credits =  format_currency(credits)
+        debits = format_currency(debits)
             
-            chart_of_accounts_display_content.append([account_Id,account_Name,credits, debits, balance])
-        window['-Chart_of_Accounts_Content-'].update(chart_of_accounts_display_content)        
-
+        balance = format_currency(balance)
+        
+        chart_of_accounts_display_content.append([account_Id,account_Name,credits, debits, balance])
+    window['-Chart_of_Accounts_Content-'].update(chart_of_accounts_display_content)        
+    return chart_of_accounts_display_content
 
 
 def update_pos_view(window,values):
@@ -2671,7 +2647,7 @@ while True:
             
             if icb_session.connection:
                 if values["-Account_Type_Picker-"] == "All Accounts":
-                    update_chart_of_accounts(icb_session.window, values, "All Accounts", f"{values['-Account_Year_Picker-']}")
+                    update_chart_of_accounts(icb_session.window, values, "Al", f"{values['-Account_Year_Picker-']}")
                 else:
                     update_chart_of_accounts(icb_session.window, values, values["-Account_Type_Picker-"][:2], f"{values['-Account_Year_Picker-']}")
 
