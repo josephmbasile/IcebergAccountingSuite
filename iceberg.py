@@ -172,27 +172,6 @@ sg.theme('LightBlue3')
 
 #import psutil
 
-#GUI Functions
-
-def configure_canvas(event, canvas, frame_id):
-    canvas.itemconfig(frame_id, width=canvas.winfo_width())
-
-def configure_frame(event, canvas):
-    canvas.configure(scrollregion=canvas.bbox("all"))
-
-def delete_widget(widget):
-    children = list(widget.children.values())
-    for child in children:
-        delete_widget(child)
-    widget.pack_forget()
-    widget.destroy()
-    del widget
-
-def new_rows():
-    global index
-    index += 1
-    layout_frame = [[sg.Text("Hello World"), sg.Push(), sg.Button('Delete', key=('Delete', index))]]
-    return [[sg.Frame(f"Frame {index:0>2d}", layout_frame, expand_x=True, key=('Frame', index))]]
 
 index = 0
 
