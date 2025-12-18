@@ -22,7 +22,7 @@ def close_connection(connection):
 def create_tables(connection, query):
     """
     Creates a table in the database.
-    
+
     Args:
         connection: The sqlite3 connection object.
         query: The SQL query to create the table.
@@ -77,10 +77,7 @@ def execute_read_query_tuple(connection, query):
     try:
         cursor.execute(query)
         results = tuple(zip(cursor.fetchall()))
-        res_tuples = [
-            result
-            for result in results
-        ]
+        res_tuples = [result for result in results]
         return res_tuples
     except Error as e:
         print(f"""An error occured: {e}""")
@@ -96,10 +93,7 @@ def execute_read_query_dict(connection, query):
     try:
         cursor.execute(query)
         results = cursor.fetchall()
-        res_dicts = [
-            dict(zip(result.keys(), result))
-            for result in results
-        ]
+        res_dicts = [dict(zip(result.keys(), result)) for result in results]
         return res_dicts
     except Error as e:
         return f"""An error occured: {e}"""
@@ -139,6 +133,7 @@ def save_db_from_memory(connection, db_name):
 
     return connection_new, connection
 
+
 def generate_filekey(db_name, save_location):
     """
     Generates a new encryption key and saves it to a file.
@@ -149,23 +144,21 @@ def generate_filekey(db_name, save_location):
     filename = f"{db_name}key"
     file_address = f"{save_location}{db_name}key"
     with open(file_address, "wb") as filekey:
-        filekey.write(
-            key
-        )  # -----------------------------------------------------------------------
+        filekey.write(key)
     return key, filename
 
 
 def encrypt_database(db_name, mode, filename, save_location, new_name):
     """
     Encrypts or decrypts a database file.
-    
+
     Args:
         db_name: The name of the database file.
         mode: 'encrypt' or 'decrypt'.
         filename: The name of the key file. If False, generates a new key (encrypt mode only).
         save_location: Directory to save the key or None/False for default.
         new_name: Optional new name for the processed database file.
-        
+
     Returns:
         tuple: (filekey, filename, save_location)
     """
@@ -255,7 +248,7 @@ def save_database(connection, db_name, filename, save_location):
     """
     Saves the current database state to an encrypted file.
     """
-    
+
     if filename == False:
         return "Error: Please select filekey to continue."
     else:
@@ -268,5 +261,3 @@ def save_database(connection, db_name, filename, save_location):
         f"Database saved to ./{db_name}; Key saved to {save_location}{filename}",
         connection,
     )
-
-
