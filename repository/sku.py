@@ -36,7 +36,7 @@ class SkuRepository:
         query = f"SELECT * FROM tbl_Skus WHERE Sku = '{sku}';"
         logger.debug(f"get_by_sku: Executing query: {query}")
         result = db.execute_read_query_dict(self.connection, query)
-        
+
         if result and len(result) > 0:
             return result[0]
         return None
@@ -48,7 +48,7 @@ class SkuRepository:
         query = f"SELECT * FROM tbl_Skus WHERE Sku_ID = {sku_id};"
         logger.debug(f"get_by_id: Executing query: {query}")
         result = db.execute_read_query_dict(self.connection, query)
-        
+
         if result and len(result) > 0:
             return result[0]
         return None
@@ -69,7 +69,18 @@ class SkuRepository:
         logger.debug(f"get_services: Executing query: {query}")
         return db.execute_read_query_dict(self.connection, query)
 
-    def insert(self, sku, description, long_description, price, taxable, inventory, type, created_time, edited_time):
+    def insert(
+        self,
+        sku,
+        description,
+        long_description,
+        price,
+        taxable,
+        inventory,
+        type,
+        created_time,
+        edited_time,
+    ):
         """
         Inserts a new SKU into the tbl_Skus table.
         """
@@ -92,6 +103,6 @@ class SkuRepository:
         query = "SELECT MAX(Sku) as MaxSku FROM tbl_Skus;"
         logger.debug(f"get_max_sku: Executing query: {query}")
         result = db.execute_read_query_dict(self.connection, query)
-        if result and len(result) > 0 and 'MaxSku' in result[0]:
-            return result[0]['MaxSku']
+        if result and len(result) > 0 and "MaxSku" in result[0]:
+            return result[0]["MaxSku"]
         return None
