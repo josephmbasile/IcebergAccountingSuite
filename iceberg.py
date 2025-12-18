@@ -33,7 +33,7 @@ import subprocess
 from iceberg_utils import get_current_time_info, format_currency, convert_dollars_to_cents, id_generator
 import logging
 
-from repository import PropertyRepository, VendorRepository, SkuRepository, AccountRepository
+from repository import PropertyRepository, VendorRepository, SkuRepository, AccountRepository, InvoiceRepository, CustomerRepository
 
 
 #logging.basicConfig(level=logging.DEBUG)
@@ -1191,55 +1191,13 @@ def create_database(values, current_console_messages,window, num, current_year):
     print(created_table)
 
     #5 Create the Customers Table
-    create_table_5_query = f"""CREATE TABLE tbl_Customers (Customer_ID INTEGER NOT NULL """
-    
-    lines = [   """, Customer_First_Name VARCHAR(9999) NOT NULL""",
-                """, Customer_Last_Name VARCHAR(9999) NOT NULL""",
-                """, Customer_Company_Name VARCHAR(9999)""",
-                """, Customer_Retail_Certificate VARCHAR(9999)""",
-                """, Preferred_Name VARCHAR(9999) NOT NULL""",
-                """, Customer_Phone_Number VARCHAR(9999)""",
-                """, Customer_Phone_Number_Type VARCHAR(9999)""",
-                """, Created_Time VARCHAR(9999) NOT NULL""", 
-                """, Edited_Time VARCHAR(9999) NOT NULL""" ,
-                """, Customer_Address VARCHAR(9999)""",
-                """, Customer_Email VARCHAR(9999)""",
-                """, Notes VARCHAR(9999)""",
-                """, PRIMARY KEY ("Customer_ID" AUTOINCREMENT)"""
-            ]
-    num_lines = len(lines)
-    for p in range(num_lines):
-        create_table_5_query = create_table_5_query + lines[p]
-    create_table_5_query = create_table_5_query + """);"""
-
-
-    db.create_tables(icb_session.connection,create_table_5_query)
+    customer_repo = CustomerRepository(icb_session.connection)
+    created_table = customer_repo.create_table()
     print(created_table)
 
     #6 Create the Invoices Table
-    create_table_7_query = f"""CREATE TABLE tbl_Invoices (Invoice_ID INTEGER NOT NULL"""
-    
-    lines = [   """, Customer_ID INT(16) NOT NULL""",
-                """, Tracking_Code VARCHAR(9999) NOT NULL""", 
-                """, Line_Items VARCHAR(9999) NOT NULL""", #Format as List, parse on read
-                """, Due_Date DATE NOT NULL""",
-                """, Created_Time VARCHAR(9999) NOT NULL""", 
-                """, Edited_Time VARCHAR(9999) NOT NULL""" ,
-                """, Subtotal INT(16) NOT NULL""",
-                """, Sales_Tax INT(16) NOT NULL""",
-                """, Total INT(16) NOT NULL""",
-                """, Status VARCHAR(6) NOT NULL""",
-                """, Payment_Method VARCHAR(9999) NOT NULL""",
-                """, Location VARCHAR(9999) NOT NULL""",
-                """, PRIMARY KEY ("Invoice_ID" AUTOINCREMENT)"""
-            ]
-    num_lines = len(lines)
-    for p in range(num_lines):
-        create_table_7_query = create_table_7_query + lines[p]
-    create_table_7_query = create_table_7_query + """);"""
-
-
-    created_table = db.create_tables(icb_session.connection,create_table_7_query)
+    invoice_repo = InvoiceRepository(icb_session.connection)
+    created_table = invoice_repo.create_table()
     #print("Invoices_Table")
     print(created_table)
 
@@ -1718,10 +1676,21 @@ def add_customer_to_database(window,values):
     add_customer_email = values[f"""-Customer_Email_{icb_session.num}-"""]
     add_customer_notes = values[f"""-Customer_Notes_{icb_session.num}-"""]
 
-    add_customer_query = f"""INSERT INTO tbl_Customers (Customer_ID, Customer_Company_Name,  Customer_First_Name, Customer_Last_Name, Preferred_Name, Customer_Phone_Number, Customer_Phone_Number_Type, Created_Time, Edited_Time, Customer_Address, Customer_Email, Notes)
-    VALUES ({add_customer_number},"{add_customer_company_name}","{add_customer_contact_first}","{add_customer_contact_last}","{add_customer_contact_preferrred}","{add_customer_phone}","{add_customer_phone_type}","{current_time[1]}","{current_time[1]}","{add_customer_address}","{add_customer_email}","{add_customer_notes}");"""
-
-    added_customer = db.execute_query(icb_session.connection,add_customer_query)
+    customer_repo = CustomerRepository(icb_session.connection)
+    added_customer = customer_repo.insert(
+        customer_id=add_customer_number,
+        company_name=add_customer_company_name,
+        first_name=add_customer_contact_first,
+        last_name=add_customer_contact_last,
+        preferred_name=add_customer_contact_preferrred,
+        phone=add_customer_phone,
+        phone_type=add_customer_phone_type,
+        created_time=current_time[1],
+        edited_time=current_time[1],
+        address=add_customer_address,
+        email=add_customer_email,
+        notes=add_customer_notes
+    )
 
     icb_session.current_console_messages = icb_session.console_log(f"Added Customer {add_customer_number}: {added_customer}",icb_session.current_console_messages)
 
@@ -1729,14 +1698,14 @@ def add_customer_to_database(window,values):
 def update_customers_view(window, values):
     """Refreshes the customers view panel."""
     search_term = values['-Customers_Search_Input-']
-    get_customers_query = f"""SELECT * FROM tbl_Customers WHERE Customer_First_Name LIKE '%{search_term}%' OR Customer_Last_Name LIKE '%{search_term}%' OR Customer_Company_Name LIKE '%{search_term}%' OR Preferred_Name LIKE '%{search_term}%' OR Customer_Phone_Number LIKE '%{search_term}%' OR Customer_Email LIKE '%{search_term}%' OR Customer_Address LIKE '%{search_term}%';"""
-    customers = db.execute_read_query_dict(icb_session.connection,get_customers_query)
+    customer_repo = CustomerRepository(icb_session.connection)
+    customers = customer_repo.search(search_term)
     #print(customers)
     if type(customers) == list:
         icb_session.customers= []        
         for customer in customers:
-            get_invoices_query = f"""SELECT Total FROM tbl_Invoices WHERE Customer_ID = {customer['Customer_ID']} AND Status = 'Due' OR Customer_ID = {customer['Customer_ID']} AND Status = 'Overdue';"""
-            these_invoices = db.execute_read_query_dict(icb_session.connection, get_invoices_query)
+            invoice_repo = InvoiceRepository(icb_session.connection)
+            these_invoices = invoice_repo.get_totals_by_customer_and_status(customer['Customer_ID'], ['Due', 'Overdue'])
             balance = 0
             for invoice in these_invoices:
                 total = f"{invoice['Total']}".replace("$","")
@@ -2094,18 +2063,17 @@ def update_chart_of_accounts(window, values, acct_types, year):
 def update_pos_view(window,values):
     """Refreshes the pos view panel."""
     search_term = values['-POS_Search_Input-']
+    invoice_repo = InvoiceRepository(icb_session.connection)
+    customer_repo = CustomerRepository(icb_session.connection)
 
-
-    get_customers_query = f"""SELECT * FROM tbl_Customers WHERE Customer_First_Name LIKE '%{search_term}%' OR Customer_Last_Name LIKE '%{search_term}%' OR Customer_Company_Name LIKE '%{search_term}%' OR Preferred_Name LIKE '%{search_term}%' OR Customer_Phone_Number LIKE '%{search_term}%' OR Customer_Email LIKE '%{search_term}%' OR Customer_Address LIKE '%{search_term}%';"""
-    customers = db.execute_read_query_dict(icb_session.connection,get_customers_query)
+    customers = customer_repo.search(search_term)
     #print(customers[0]['Customer_ID'])
     if len(customers) > 0:
 
 
         icb_session.invoices= []  
         for customer in customers:
-            get_invoices_query = f"""SELECT * FROM tbl_Invoices WHERE Customer_ID LIKE '%{customer['Customer_ID']}%';"""
-            invoices = db.execute_read_query_dict(icb_session.connection,get_invoices_query)
+            invoices = invoice_repo.get_by_customer_id(customer['Customer_ID'])
             #print(invoices)
             if len(invoices) > 0 and type(invoices) == list:
                 for invoice in invoices:
@@ -2114,13 +2082,11 @@ def update_pos_view(window,values):
             icb_session.window["-View_POS_Content-"].update(icb_session.invoices)
     else:
         icb_session.invoices= []  
-        get_invoices_query = f"""SELECT * FROM tbl_Invoices WHERE Invoice_ID LIKE '%{search_term}%' OR Customer_ID LIKE '%{search_term}%' OR Tracking_Code LIKE '%{search_term}%' OR Line_Items LIKE '%{search_term}%' OR Subtotal LIKE '%{search_term}%' OR Total LIKE '%{search_term}%' OR Status LIKE '%{search_term}%' OR Payment_Method LIKE '%{search_term}%';"""
-        invoices = db.execute_read_query_dict(icb_session.connection,get_invoices_query)
+        invoices = invoice_repo.search(search_term)
         #print(invoices)
         if len(invoices) > 0 and type(invoices) == list:
             for invoice in invoices:
-                get_customer_query = f"""SELECT * FROM tbl_Customers WHERE Customer_ID = {invoice['Customer_ID']};"""
-                customer = db.execute_read_query_dict(icb_session.connection,get_customer_query)
+                customer = [customer_repo.get_by_id(invoice['Customer_ID'])]
                 icb_session.invoices.append([f"{invoice['Invoice_ID']}",f"{customer[0]['Customer_First_Name']} {customer[0]['Customer_Last_Name']}",f"{customer[0]['Customer_Phone_Number']}",f"{customer[0]['Customer_Email']}",f"{invoice['Total']}", f"{invoice['Status']}"])
                 icb_session.window["-View_POS_Content-"].update(icb_session.invoices)
     window['-POS_Number_Display-'].update(f"Invoice Number")
@@ -2139,33 +2105,31 @@ def update_pos_view(window,values):
 
 def load_single_invoice(window, values, invoice_id):
     """Loads a single invoice into the side panel."""
-    this_invoice_query = f"""Select * FROM tbl_Invoices WHERE Invoice_ID = {invoice_id};"""
-    retrieved_invoice = db.execute_read_query_dict(icb_session.connection,this_invoice_query)
-    icb_session.this_invoice = retrieved_invoice[0]
-    if type(retrieved_invoice) == str:
-        print("retrieved invoice")
-        #print(retrieved_invoice)
+    invoice_repo = InvoiceRepository(icb_session.connection)
+    icb_session.this_invoice = invoice_repo.get_by_id(invoice_id)
+    
+    if icb_session.this_invoice is None:
+        print("retrieved invoice is None")
+    elif type(icb_session.this_invoice) == str:
+        print("retrieved invoice error: " + icb_session.this_invoice)
     else:  
-        #print("retrieved_service[0]")
-        #print(f"{retrieved_invoice}")
-        this_customer_query = f"""SELECT * FROM tbl_Customers WHERE Customer_ID = {retrieved_invoice[0]['Customer_ID']};"""
-        this_customer = db.execute_read_query_dict(icb_session.connection,this_customer_query)
+        customer_repo = CustomerRepository(icb_session.connection)
+        this_customer = [customer_repo.get_by_id(icb_session.this_invoice['Customer_ID'])]
         if type(this_customer) == str:
             print(this_customer)
         else:  
-            #print(retrieved_invoice[0]['Invoice_ID'])
-            window['-POS_Number_Display-'].update(f"Invoice {retrieved_invoice[0]['Invoice_ID']}")
+            window['-POS_Number_Display-'].update(f"Invoice {icb_session.this_invoice['Invoice_ID']}")
             window['-POS_CustomerName_Input-'].update(this_customer[0]['Customer_Company_Name'])
             window['-POS_CustomerContact_Input-'].update(f"""{this_customer[0]['Customer_First_Name']} {this_customer[0]['Customer_Last_Name']}""")
             window['-POS_CustomerEmail_Input-'].update(this_customer[0]['Customer_Email'])
             window['-POS_CustomerPhone_Input-'].update(this_customer[0]['Customer_Phone_Number'])
-            window['-POS_TrackingCode_Input-'].update(retrieved_invoice[0]['Tracking_Code'])
-            window['-POS_Subtotal_Input-'].update(f"{retrieved_invoice[0]['Subtotal']}")
-            window['-POS_SalesTax_Input-'].update(f"{retrieved_invoice[0]['Sales_Tax']}")
-            window['-POS_Total_Input-'].update(f"{retrieved_invoice[0]['Total']}")
-            window['-POS_DueDate_Input-'].update(f"{retrieved_invoice[0]['Due_Date']}")
-            window['-POS_Status_Input-'].update(retrieved_invoice[0]['Status'])
-            window['-View_POS_Button-'].update(f"{retrieved_invoice[0]['Location']}")
+            window['-POS_TrackingCode_Input-'].update(icb_session.this_invoice['Tracking_Code'])
+            window['-POS_Subtotal_Input-'].update(f"{icb_session.this_invoice['Subtotal']}")
+            window['-POS_SalesTax_Input-'].update(f"{icb_session.this_invoice['Sales_Tax']}")
+            window['-POS_Total_Input-'].update(f"{icb_session.this_invoice['Total']}")
+            window['-POS_DueDate_Input-'].update(f"{icb_session.this_invoice['Due_Date']}")
+            window['-POS_Status_Input-'].update(icb_session.this_invoice['Status'])
+            window['-View_POS_Button-'].update(f"{icb_session.this_invoice['Location']}")
 
 
 def add_service_to_database(window,values):
@@ -2459,14 +2423,24 @@ def save_invoice_to_database(window,values,filepath):
 
     
     #Save the invoice to the database
-    save_invoice_query = f"""INSERT INTO tbl_Invoices (Invoice_ID, Customer_ID, Tracking_Code, Line_Items, Due_Date, 
-    Created_Time, Edited_Time, Subtotal, Sales_Tax, Total, Status, Payment_Method, Location)
-    VALUES ({icb_session.this_invoice['Invoice_ID']}, {icb_session.this_invoice['Customer_ID']}, '{icb_session.this_invoice['Tracking_Code']}', '{f"""{icb_session.this_invoice['Line_Items']}""".replace("'",f'"')}', '{icb_session.this_invoice['Due_Date'][:10]}',
-    '{now}', '{now}', '{icb_session.this_invoice['Subtotal']}', 
-    ' {icb_session.this_invoice['Sales_Tax']}', '{icb_session.this_invoice['Total']}', '{icb_session.this_invoice['Status']}', 
-    '', '{filepath}');"""
-    #print(save_invoice_query)
-    save_invoice = db.execute_query(icb_session.connection,save_invoice_query)
+    line_items_str = f"""{icb_session.this_invoice['Line_Items']}""".replace("'",f'"')
+    
+    invoice_repo = InvoiceRepository(icb_session.connection)
+    save_invoice = invoice_repo.insert(
+        invoice_id=icb_session.this_invoice['Invoice_ID'],
+        customer_id=icb_session.this_invoice['Customer_ID'],
+        tracking_code=icb_session.this_invoice['Tracking_Code'],
+        line_items=line_items_str,
+        due_date=icb_session.this_invoice['Due_Date'][:10],
+        created_time=f'{now}',
+        edited_time=f'{now}',
+        subtotal=icb_session.this_invoice['Subtotal'],
+        sales_tax=icb_session.this_invoice['Sales_Tax'],
+        total=icb_session.this_invoice['Total'],
+        status=icb_session.this_invoice['Status'],
+        payment_method='',
+        location=filepath
+    )
 
     #Save the transaction 
     
@@ -3231,9 +3205,8 @@ while True:
             #print(this_layout, icb_session.num)
             #print("this_layout")
             #print(invoice_layout)
-            get_invoice_id_query = f"""SELECT COUNT(*) FROM tbl_Invoices;"""
-            #print(f"{db.execute_read_query(get_invoice_id_query,icb_session.connection)}")
-            this_invoice_id = int(db.execute_read_query_dict(icb_session.connection,get_invoice_id_query)[0]['COUNT(*)'])+10001
+            invoice_repo = InvoiceRepository(icb_session.connection)
+            this_invoice_id = int(invoice_repo.get_count()) + 10001
             #print(f"{this_invoice_id}")
             new_invoice_window = sg.Window(title=f"Record Invoice {this_invoice_id}", location=(700,200),layout= invoice_layout, margins=(10,2), resizable=True, size=(750,400))
             new_invoice_window.close_destroys_window = True
