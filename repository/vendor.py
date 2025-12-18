@@ -48,7 +48,7 @@ class VendorRepository:
         query = f"SELECT * FROM tbl_Vendors WHERE Vendor_ID = {vendor_id};"
         logger.debug(f"get_by_id: Executing query: {query}")
         result = db.execute_read_query_dict(self.connection, query)
-        
+
         if result and len(result) > 0:
             return result[0]
         return None
@@ -61,7 +61,23 @@ class VendorRepository:
         logger.debug(f"search: Executing query: {query}")
         return db.execute_read_query_dict(self.connection, query)
 
-    def insert(self, vendor_id, business_name, merchant_category, contact_first_name, contact_last_name, preferred_name, phone_number, phone_number_type, created_time, edited_time, business_address, business_email, business_website, notes):
+    def insert(
+        self,
+        vendor_id,
+        business_name,
+        merchant_category,
+        contact_first_name,
+        contact_last_name,
+        preferred_name,
+        phone_number,
+        phone_number_type,
+        created_time,
+        edited_time,
+        business_address,
+        business_email,
+        business_website,
+        notes,
+    ):
         """
         Inserts a new vendor into the tbl_Vendors table.
         """
@@ -70,7 +86,22 @@ class VendorRepository:
         logger.debug(f"insert: Executing query: {query}")
         return db.execute_query(self.connection, query)
 
-    def update(self, vendor_id, business_name, merchant_category, contact_first_name, contact_last_name, preferred_name, phone_number, phone_number_type, business_address, business_email, business_website, notes, edited_time):
+    def update(
+        self,
+        vendor_id,
+        business_name,
+        merchant_category,
+        contact_first_name,
+        contact_last_name,
+        preferred_name,
+        phone_number,
+        phone_number_type,
+        business_address,
+        business_email,
+        business_website,
+        notes,
+        edited_time,
+    ):
         """
         Updates a vendor.
         """
@@ -85,6 +116,6 @@ class VendorRepository:
         query = "SELECT MAX(Vendor_ID) as MaxID FROM tbl_Vendors;"
         logger.debug(f"get_max_id: Executing query: {query}")
         result = db.execute_read_query_dict(self.connection, query)
-        if result and len(result) > 0 and 'MaxID' in result[0]:
-            return result[0]['MaxID']
+        if result and len(result) > 0 and "MaxID" in result[0]:
+            return result[0]["MaxID"]
         return None
