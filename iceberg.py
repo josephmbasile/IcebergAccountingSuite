@@ -33,10 +33,10 @@ import subprocess
 from iceberg_utils import get_current_time_info, format_currency, convert_dollars_to_cents, id_generator
 import logging
 
-from repository import PropertyRepository, VendorRepository, SkuRepository
+from repository import PropertyRepository, VendorRepository, SkuRepository, AccountRepository
 
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 #------------------------------------------Section 1 Date Information
 
 sample_date = parser.parse('2023-04-02')
@@ -131,8 +131,6 @@ class new_session:
             full_message = full_message + f"""\nConsole ({self.current_time_display[0]}): {created_entry}"""
         return current_console_messages
 
-
-
 icb_session = new_session()
 print(icb_session.transaction_date)
 print(icb_session.current_date)
@@ -144,9 +142,6 @@ logo = "Logo_AI.png"
 
 phone_types = ["Mobile","Home", "Office", "Work", "Other"]
 
-
-
-
 account_types = [[0,"Assets"],[1,"Expenses"],[2,"Equity Withdrawals"],[3,"Liabilities"],[4,"Owner Equity"],[5,"Revenue"]]
 bank_account_types = [[0,"Checking"],[1,"Savings"],[2,"Passbook"],[3,"Certificate of Deposit"]]
 
@@ -156,10 +151,6 @@ large_print = 16
 extra_large_print = 24
 detailed_information_color="#dcfffe"
 overview_information_color = "#bbf0f9"
-
-
-
-
 
 #financials (SAMPLE DATA)
 total_credits = "$0.00"
@@ -178,8 +169,6 @@ business_income = "$0.00"
 #------------------------------------------Section 3 GUI Layout
 
 sg.theme('LightBlue3')
-
-
 
 #import psutil
 
@@ -205,13 +194,7 @@ def new_rows():
     layout_frame = [[sg.Text("Hello World"), sg.Push(), sg.Button('Delete', key=('Delete', index))]]
     return [[sg.Frame(f"Frame {index:0>2d}", layout_frame, expand_x=True, key=('Frame', index))]]
 
-
-
-
-
 index = 0
-
-
 
 
 #░▒▓█▓▒░         ░▒▓██████▓▒░  ░▒▓█▓▒░░▒▓█▓▒░  ░▒▓██████▓▒░  ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓████████▓▒░ 
@@ -251,10 +234,6 @@ account_information_labels_width = 20
 edit_account_border_width = 0
 
 view_account_labels_pad = 2
-
-
-
-
 
 
 #-----------------Dashboard Setup----------------
@@ -382,7 +361,6 @@ view_vendors_edit_layout = [
 ]
 
 
-
 view_vendor_labels_layout = [
     #[sg.Text(f"",font=("",2), size=(account_information_labels_width,1),justification="left", background_color=overview_information_color)],
     [sg.Text(f"Name: ",font=("",small_print), size=(view_vendors_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=detailed_information_color, key="-Vendor_Name_Display-")],    
@@ -407,9 +385,6 @@ view_vendor_frame_layout = [
     [sg.Multiline(f"Notes:", font=("",medium_print), autoscroll=True, size=(account_information_labels_width*2,4),justification="left", background_color=detailed_information_color, key="-Vendor_Notes_Display-")],
     [sg.Push(background_color=overview_information_color), sg.Button(f"Edit Vendor", disabled=False,  key="-Edit_Vendor_Button-")],
 ]
-
-
-
 
 view_vendors_tab_column_1 = [
     [sg.Frame("Vendor: ", layout=view_vendor_frame_layout, size=(275,600),font=("",medium_print,"bold"), key="-View_Vendor_Frame-", background_color=overview_information_color)],
@@ -532,7 +507,6 @@ view_pos_edit_layout = [
     [sg.OptionMenu([f"Due","Overdue","Paid","Refunded","Canceled"], disabled=True, pad=view_account_labels_pad+1, size=(view_customers_data_width,1),background_color="white", key="-POS_Status_Input-")],
 ]
 
-
 view_pos_labels_layout = [
     #[sg.Text(f"",font=("",medium_print), size=(account_information_labels_width,1),justification="left", background_color=overview_information_color)],detailed_information_color
     [sg.Text(f"Customer: ",font=("",small_print), size=(view_customers_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=overview_information_color, key="-POS_Name_Display-")],    
@@ -635,20 +609,15 @@ view_account_tab = [
     [sg.Column(view_account_tab_column_1, size=(280,460), element_justification="left"), sg.Column(view_account_tab_column_2, size=(960,460), element_justification="center", expand_x=True, expand_y=False)],
 ]
 
-
 current_time_info = get_current_time_info()
-
 
 application_messages_layout = [
     [sg.Text(icb_session.current_console_messages[0], size=(120,5), background_color=overview_information_color, key="-Console_Log-", font=("",medium_print), expand_x=True, expand_y=True)],
     ]
 
-
 console_frame_layout = [
     [sg.Frame("Console", size=(1228,200), expand_x=True, expand_y=False, layout=application_messages_layout, background_color=overview_information_color, pad=4, element_justification="center", key='-Console_Frame_Layout-')] 
 ]
-
-
 
 view_properties_tab = [
     [sg.Text("Business Name:", font=("",medium_print)), sg.Push(), sg.Input(size=(30,1), key=f"-edit_db_name-", font=("", medium_print))],
@@ -662,8 +631,6 @@ view_properties_tab = [
     [sg.Text("Sales Tax %: "), sg.Push(), sg.Input("",(25,1),key=f"-Edit_Sales_Tax-",)],
     [sg.Multiline("Notes: ", size=(62,9),key=f"-Edit_Business_Notes-",)],
     [sg.Push(),sg.Button("Save Properties", size=(16,1), font=("", medium_print), enable_events=True, key="-Save_Revised_Properties-")],
-
-
 ]
 
 transaction_information_labels_width = 10
@@ -719,20 +686,13 @@ view_ledger_tab_column_2 = [
 
 ]
 
-
-
-
 ledger_tab = [
     [sg.Column(view_ledger_tab_column_1, size=(300,755), element_justification="left"), sg.Column(view_ledger_tab_column_2, size=(935,755), element_justification="center", expand_x=True, expand_y=False)],
 ]
 
-
-
 about_tab = [
     [sg.Text(f"\n\nAbout Iceberg: \nVersion 1.1\n\nDeveloped in the United States by Joseph M. Basile \n\nMIT License 2024", expand_x=True, font=("",medium_print), justification="center")],
 ]
-
-
 
 #-------------Overall Layout------------------------
 
@@ -855,12 +815,7 @@ def new_transaction_layout(num):
         [sg.Column([[sg.Button(button_text="Submit",size=(20,1),key=f'-Submit_Transaction_Button_{num}-', enable_events=True)],[sg.Sizer(780,0)]],justification="center", size=(780,60),element_justification="center",expand_x=True)],
     ]
     
-    
-
-
     return new_transaction_layout, num
-
-
 
 
 def new_account_layout(num):
@@ -880,16 +835,11 @@ def new_account_layout(num):
         [sg.Multiline("Notes: ", font=("",medium_print), size=(44,8),key=f"-Account_Notes_{num}-")],
     ]
     
-    
-
     new_account_layout = [
         [sg.Column(layout=new_account_column,pad=0)],
         [sg.Column([[sg.Button(button_text="Submit",size=(20,1),key=f'-Submit_Account_Button_{num}-', enable_events=True)],[sg.Sizer(480,0)]],justification="center", size=(480,60),element_justification="center",expand_x=True)],
     ]
     
-    
-
-
     return new_account_layout, num
 
 
@@ -1144,24 +1094,8 @@ def create_database(values, current_console_messages,window, num, current_year):
 
     #2 Create the table of accounts and populate it with default accounts
 
-    create_table_2_query = f"""CREATE TABLE tbl_Accounts (Account_ID INTEGER NOT NULL"""
-    lines = [   """, Name VARCHAR(9999) NOT NULL UNIQUE""",
-                """, Notes VARCHAR(9999)""",
-                """, Created_Time VARCHAR(9999) NOT NULL""", 
-                """, Edited_Time VARCHAR(9999) NOT NULL""" ,
-                """, Institution VARCHAR(9999)""",
-                """, Ins_Account_Type VARCHAR(9999)""",
-                """, Ins_Routing_Number VARCHAR(9999)""",
-                """, Ins_Account_Number VARCHAR(9999)""",
-                """, PRIMARY KEY ("Account_ID")"""
-            ]
-    num_lines = len(lines)
-    for p in range(num_lines):
-        create_table_2_query = create_table_2_query + lines[p]
-    create_table_2_query = create_table_2_query + """);"""
-
-
-    created_table = db.create_tables(icb_session.connection,create_table_2_query)
+    account_repo = AccountRepository(icb_session.connection)
+    created_table = account_repo.create_table()
     print(created_table)
 
     #TODO:ADD IN DEFAULT ACCOUNTS
@@ -1205,11 +1139,17 @@ def create_database(values, current_console_messages,window, num, current_year):
     ]
 
     for account in default_accounts:
-        create_default_accounts_query = f"""INSERT INTO tbl_Accounts (Account_ID, Name, Notes,Created_Time, Edited_Time, Institution, Ins_Account_Type, Ins_Routing_Number, Ins_Account_Number)
-            VALUES(({account[0]}),("{account[1]}"),("{account[2]}"),("{account[3]}"),("{account[4]}"),("{account[5]}"),("{account[6]}"),("{account[7]}"),("{account[8]}"));
-        """
-        #print(create_default_accounts_query)
-        created_account = db.execute_query(icb_session.connection,create_default_accounts_query)
+        created_account = account_repo.insert(
+            account[0],
+            account[1],
+            account[2],
+            account[3],
+            account[4],
+            account[5],
+            account[6],
+            account[7],
+            account[8]
+        )
         current_console_messages = icb_session.console_log(message=created_account,current_console_messages=current_console_messages)
         print(created_account)
 
@@ -1397,8 +1337,8 @@ def update_dashboard_statistics(window, values):
     #print(f"read the ledger: {current_year_ledger}")
     if type(current_year_ledger) == str:
         current_year_ledger = False
-    read_accounts_query = f"""SELECT * from tbl_Accounts;"""
-    accounts = db.execute_read_query_dict(icb_session.connection, read_accounts_query)
+    repo = AccountRepository(icb_session.connection)
+    accounts = repo.get_all()
     #print(accounts)
     #Create and display the chart of accounts.
     chart_of_accounts_display_content = []
@@ -1584,11 +1524,8 @@ def load_database_properties_tab(window, values, connection):
 
 def load_view_account_tab(window, values, account_number, ledger_name):
     """Loads the selected account from the chart of accounts."""
-    this_account_query = f"""SELECT * FROM tbl_Accounts WHERE Account_ID IS {account_number};"""
-    
-    this_account_0 = db.execute_read_query_dict(icb_session.connection, this_account_query)
-    #print(f'this_account: {this_account_0}')
-    this_account = this_account_0[0]
+    repo = AccountRepository(icb_session.connection)
+    this_account = repo.get_by_id(account_number)
     
 
     icb_session.account_number = this_account
@@ -1668,8 +1605,17 @@ def save_account_changes(window, values):
     
     
     
-    update_account_query = f"""UPDATE tbl_Accounts SET Name = '{values['-Edit_Account_Name_Input-']}', Notes = '{values['-Account_Notes_Display-']}', Edited_Time = '{current_time[1]}', Institution = '{values['-Edit_Account_Bank-']}', Ins_Account_Number = '{values['-Edit_Account_Bank_Acct_Number-']}', Ins_Account_Type = '{values['-Edit_Account_Bank_Acct_Type-']}', Ins_Routing_Number = '{values['-Edit_Account_Bank_Acct_Routing-']}' WHERE Account_ID = {values['-Edit_Account_Number_Input-']};"""
-    updated_account = db.execute_query(icb_session.connection, update_account_query)
+    repo = AccountRepository(icb_session.connection)
+    updated_account = repo.update(
+        values['-Edit_Account_Number_Input-'],
+        values['-Edit_Account_Name_Input-'],
+        values['-Account_Notes_Display-'],
+        current_time[1],
+        values['-Edit_Account_Bank-'],
+        values['-Edit_Account_Bank_Acct_Type-'],
+        values['-Edit_Account_Bank_Acct_Routing-'],
+        values['-Edit_Account_Bank_Acct_Number-']
+    )
     icb_session.current_console_messages = icb_session.console_log(f"""Updated Account {values['-Edit_Account_Number_Input-']}; {updated_account}""",icb_session.current_console_messages)
     
 
@@ -1793,7 +1739,7 @@ def update_customers_view(window, values):
             these_invoices = db.execute_read_query_dict(icb_session.connection, get_invoices_query)
             balance = 0
             for invoice in these_invoices:
-                total = f"{invoice["Total"]}".replace("$","")
+                total = f"{invoice['Total']}".replace("$","")
                 total = f"{total}".replace(",","")
                 balance = balance + int(dec(total)*100)
             icb_session.customers.append([f"{customer['Customer_ID']}",f"{customer['Customer_Company_Name']}",f"{customer['Customer_First_Name']} {customer['Customer_Last_Name']}",f"{customer['Customer_Phone_Number']}",f"{customer['Customer_Email']}", f"{format_currency(balance)}"])
@@ -2047,13 +1993,13 @@ def add_account_to_database(values):
     account_type = int(values[f'-Account_Type_Picker_{icb_session.num}-'][:2])
     #print(account_type)
 
-    count_accounts_query = f"""SELECT COUNT(Account_ID) AS [Number_of_Records] FROM tbl_Accounts WHERE Account_ID > {account_type}000 AND Account_ID < {account_type+1}000;"""
-    account_count = db.execute_read_query_dict(icb_session.connection, count_accounts_query)
+    repo = AccountRepository(icb_session.connection)
+    account_count_val = repo.get_count_in_range(int(f"{account_type}000"), int(f"{account_type+1}000"))
     #print("account_count")
-    #print(account_count)
+    #print(account_count_val)
     new_account_number = 0
     if type(new_account_number) != str:
-        new_account_number = int(f"{account_type}001")+int(account_count[0]['Number_of_Records'])
+        new_account_number = int(f"{account_type}001") + account_count_val
         #print(count_accounts_query)
         #print("account_number")
         #print(new_account_number)
@@ -2067,18 +2013,19 @@ def add_account_to_database(values):
         new_account_bank_type = values[f"-Account_Bank_Account_Type_{icb_session.num}-"]
         new_account_routing = values[f"-Account_Bank_Routing_{icb_session.num}-"]
         new_account_bank_account_number = values[f"-Account_Bank_Account_Number_{icb_session.num}-"]
-        new_account = [
-            [new_account_number,new_account_name,new_account_notes,current_time[1],current_time[1],new_account_bank,new_account_bank_type,new_account_routing,new_account_bank_account_number],
-        ]
-
-        for account in new_account:
-            create_default_accounts_query = f"""INSERT INTO tbl_Accounts (Account_ID, Name, Notes,Created_Time, Edited_Time, Institution, Ins_Account_Type, Ins_Routing_Number, Ins_Account_Number)
-                VALUES(({account[0]}),("{account[1]}"),("{account[2]}"),("{account[3]}"),("{account[4]}"),("{account[5]}"),("{account[6]}"),("{account[7]}"),("{account[8]}"));
-            """
-            #print(create_default_accounts_query)
-            created_account = db.execute_query(icb_session.connection,create_default_accounts_query)
-            icb_session.current_console_messages = icb_session.console_log(message=created_account,current_console_messages=icb_session.current_console_messages)
-            print(created_account)
+        created_account = repo.insert(
+            new_account_number,
+            new_account_name,
+            new_account_notes,
+            current_time[1],
+            current_time[1],
+            new_account_bank,
+            new_account_bank_type,
+            new_account_routing,
+            new_account_bank_account_number
+        )
+        icb_session.current_console_messages = icb_session.console_log(message=created_account,current_console_messages=icb_session.current_console_messages)
+        print(created_account)
     else:
         icb_session.current_console_messages = icb_session.console_log(message=account_count,current_console_messages=icb_session.current_console_messages)
 
@@ -2106,8 +2053,8 @@ def update_chart_of_accounts(window, values, acct_types, year):
         #print(f"read the ledger: {current_year_ledger}")
         if type(current_year_ledger) == str:
             current_year_ledger = False
-        read_accounts_query = f"""SELECT * from tbl_Accounts WHERE Account_ID LIKE '{acct_types}%';"""
-        accounts = db.execute_read_query_dict(icb_session.connection, read_accounts_query)
+        repo = AccountRepository(icb_session.connection)
+        accounts = repo.get_by_type_prefix(acct_types)
         #print(accounts)
         #Create and display the chart of accounts.
         chart_of_accounts_display_content = []
