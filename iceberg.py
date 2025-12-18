@@ -32,7 +32,9 @@ import img2pdf
 import subprocess
 from iceberg_utils import get_current_time_info, format_currency, convert_dollars_to_cents, id_generator
 import logging
-from repository import PropertyRepository, SkuRepository
+
+from repository import PropertyRepository, VendorRepository, SkuRepository
+
 
 logging.basicConfig(level=logging.DEBUG)
 #------------------------------------------Section 1 Date Information
@@ -423,14 +425,6 @@ vendors_tab = [
     [sg.Push(),sg.Input("",(20,1),disabled=False, enable_events=True, key="-Vendors_Search_Input-"), sg.Button("New Vendor",enable_events=True, key="-New_Vendor_Button-"),sg.Text(" ")],
 ]
 
-
-
-
-
-
-
-
-
 view_customers_data_height = 30
 view_customers_labels_width = 10
 view_customers_data_width = 30
@@ -445,8 +439,6 @@ view_customers_edit_layout = [
     [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(12,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Customer_Phone_Input-"), sg.OptionMenu(phone_types, pad=view_account_labels_pad+1, size=(8,1), background_color="white", disabled=True, key="-Customer_PhoneType_Input-")],
     [sg.Input(f"", pad=view_account_labels_pad+1, font=("",small_print), size=(view_customers_data_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Customer_Email_Input-")],
 ]
-
-
 
 view_customers_labels_layout = [
     #[sg.Text(f"",font=("",medium_print), size=(account_information_labels_width,1),justification="left", background_color=overview_information_color)],
@@ -469,9 +461,6 @@ view_customers_frame_layout = [
     [sg.Push(background_color=overview_information_color), sg.Button(f"Edit Customer", disabled=False,  key="-Edit_Customer_Button-")],
 ]
 
-
-
-
 view_customers_tab_column_1 = [
     [sg.Frame("Customer: ", layout=view_customers_frame_layout, size=(275,600),font=("",medium_print,"bold"), key="-View_Customer_Frame-", background_color=overview_information_color)],
 ]
@@ -479,7 +468,6 @@ view_customers_tab_column_1 = [
 view_customers_tab_column_2 = [
     [sg.Table(values=[],row_height=36, col_widths=[10,24,20,14,20,14], cols_justification=["c","c","c","c","c","c"], auto_size_columns=False, headings=["Customer", "Name", "Contact", "Phone", "Email", "Balance"], num_rows=16, expand_x=True, expand_y=True, font=("",medium_print), enable_events=True, justification="Center", key="-View_Customers_Content-", background_color=detailed_information_color)],
 ]
-
 
 customers_tab = [
     #[sg.Text(font=("",medium_print), size=(133,1), justification="center")],
@@ -496,8 +484,6 @@ view_services_edit_layout = [
     [sg.Input(f"", pad=view_account_labels_pad+1,font=("",small_print), size=(view_customers_data_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Service_Price_Input-")],
     [sg.Input(f"", pad=view_account_labels_pad+1,font=("",small_print), size=(view_customers_data_width,1),justification="left", disabled_readonly_background_color=overview_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Service_Taxable_Input-")],
  ]
-
-
 
 view_services_labels_layout = [
     #[sg.Text(f"",font=("",medium_print), size=(account_information_labels_width,1),justification="left", background_color=overview_information_color)],
@@ -517,8 +503,6 @@ view_services_frame_layout = [
     [sg.Push(background_color=overview_information_color), sg.Button(f"Edit SKU", disabled=False,  key="-Edit_Service_Button-")],
 ]
 
-
-
 view_services_tab_column_1 = [
     [sg.Frame("Service: ", layout=view_services_frame_layout, size=(275,600),font=("",medium_print,"bold"), key="-View_Service_Frame-", background_color=overview_information_color)],
 ]
@@ -530,7 +514,6 @@ view_services_tab_column_2 = [
 services_tab = [
     [sg.Column(view_services_tab_column_1, size=(280,610), element_justification="left"), sg.Column(view_services_tab_column_2, size=(960,610), element_justification="center", expand_x=True, expand_y=False)],
     [sg.Push(),sg.Input("",(20,1),disabled=False, enable_events=True, key="-Services_Search_Input-"), sg.Button("New Service",enable_events=True, key="-New_Service_Button-"),sg.Text(" ")],
-
 ]
 
 view_pos_edit_layout = [
@@ -585,11 +568,9 @@ pos_tab_column_2 = [
     [sg.Table(values=[],row_height=36, col_widths=[12,20,16,22,16,16], cols_justification=["c","c","c","c","c","c"], auto_size_columns=False, headings=["Invoice","Customer Name", "Phone", "Email", "Total", "Status"], num_rows=16, expand_x=True, expand_y=True, font=("",medium_print), enable_events=True, justification="Center", key="-View_POS_Content-", background_color=detailed_information_color)],
 ]
 
-
 POS_tab = [
     [sg.Column(pos_tab_column_1, size=(280,610), element_justification="left"), sg.Column(pos_tab_column_2, size=(960,610), element_justification="center", expand_x=True, expand_y=False)],
     [sg.Push(),sg.Input("",(20,1),disabled=False, enable_events=True, key="-POS_Search_Input-"), sg.Button("New Invoice",enable_events=True, key="-New_Invoice_Button-"),sg.Text(" ")],
-
 ]
 
 inventory_tab = [
@@ -616,8 +597,6 @@ view_account_edit_layout = [
     [sg.Input(f"{6543.21-1234.56}", pad=view_account_labels_pad+1, font=("",small_print), size=(account_information_labels_width,1),justification="left", disabled_readonly_background_color=detailed_information_color, background_color="white", border_width=edit_account_border_width, readonly=True, key="-Edit_Account_Balance-")],
 ]
 
-
-
 view_account_labels_layout = [
     #[sg.Text(f"",font=("",medium_print), size=(account_information_labels_width,1),justification="left", background_color=overview_information_color)],
     [sg.Text(f"Account Number: ",font=("",small_print), size=(account_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=detailed_information_color, key="-Account_Number_Display-")],
@@ -629,7 +608,6 @@ view_account_labels_layout = [
     [sg.Text(f"Total Debits: ", font=("",small_print), size=(account_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=detailed_information_color, key="-Account_Debits_Display-")],
     [sg.Text(f"Total Credits: ", font=("",small_print), size=(account_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=overview_information_color, key="-Account_Credits_Display-")],
     [sg.Text(f"Balance: ", font=("",small_print), size=(account_information_labels_width,1),pad=(0, view_account_labels_pad),justification="left", background_color=detailed_information_color, key="-Account_Balance_Display-")],
-
 ]
 
 view_account_column_height = len(view_account_labels_layout)*24
@@ -844,8 +822,8 @@ def new_transaction_layout(num):
     these_accounts = []
     for account in icb_session.all_accounts:
         these_accounts.append(f"""{account['Account_ID']} - {account['Name']}""") 
-    retrieve_vendors_query = f"""SELECT * FROM tbl_Vendors;"""
-    icb_session.vendors = db.execute_read_query_dict(icb_session.connection,retrieve_vendors_query)
+    vendor_repo = VendorRepository(icb_session.connection)
+    icb_session.vendors = vendor_repo.get_all()
     these_vendors = [""]
     if len(icb_session.vendors)>0:
         for vendor in icb_session.vendors:
@@ -1266,30 +1244,10 @@ def create_database(values, current_console_messages,window, num, current_year):
     #TODO: Collect user information during setup
 
     #4 Create the Vendors Table
-    create_table_4_query = f"""CREATE TABLE tbl_Vendors (Vendor_ID INTEGER NOT NULL"""
-    
-    lines = [   """, Business_Name VARCHAR(9999) NOT NULL UNIQUE""",   
-                """, Merchant_Category VARCHAR(9999) NOT NULL""",   
-                """, Contact_First_Name VARCHAR(9999) NOT NULL""",
-                """, Contact_Last_Name VARCHAR(9999) NOT NULL""",
-                """, Preferred_Name VARCHAR(9999) NOT NULL""",
-                """, Phone_Number VARCHAR(9999)""",
-                """, Phone_Number_Type VARCHAR(9999)""",   #Mobile, Home, Office, Work, Other
-                """, Created_Time VARCHAR(9999) NOT NULL""", 
-                """, Edited_Time VARCHAR(9999) NOT NULL""" ,
-                """, Business_Address VARCHAR(9999)""",
-                """, Business_Email VARCHAR(9999)""",
-                """, Business_Website VARCHAR(9999)""",
-                """, Notes VARCHAR(9999)""",
-                """, PRIMARY KEY ("Vendor_ID")"""
-            ]
-    num_lines = len(lines)
-    for p in range(num_lines):
-        create_table_4_query = create_table_4_query + lines[p]
-    create_table_4_query = create_table_4_query + """);"""
-
+    #4 Create the Vendors Table
+    vendor_repo = VendorRepository(icb_session.connection)
+    created_table = vendor_repo.create_table()
     icb_session.vendor_number = int(0)
-    created_table = db.create_tables(icb_session.connection,create_table_4_query)
     print(created_table)
 
     #5 Create the Customers Table
@@ -1731,17 +1689,15 @@ def add_vendor_to_database(window,values):
     add_vendor_website = values[f"""-Vendor_Website_{icb_session.num}-"""]
     add_vendor_notes = values[f"""-Vendor_Notes_{icb_session.num}-"""]
 
-    add_vendor_query = f"""INSERT INTO tbl_Vendors (Vendor_ID, Business_Name, Merchant_Category, Contact_First_Name, Contact_Last_Name, Preferred_Name, Phone_Number, Phone_Number_Type, Created_Time, Edited_Time, Business_Address, Business_Email, Business_Website,Notes)
-    VALUES ({add_vendor_number},"{add_vendor_name}","{add_vendor_category}","{add_vendor_contact_first}","{add_vendor_contact_last}","{add_vendor_contact_preferrred}","{add_vendor_phone}","{add_vendor_phone_type}","{current_time[1]}","{current_time[1]}","{add_vendor_address}","{add_vendor_email}","{add_vendor_website}","{add_vendor_notes}");"""
-
-    added_vendor = db.execute_query(icb_session.connection,add_vendor_query)
+    vendor_repo = VendorRepository(icb_session.connection)
+    added_vendor = vendor_repo.insert(add_vendor_number, add_vendor_name, add_vendor_category, add_vendor_contact_first, add_vendor_contact_last, add_vendor_contact_preferrred, add_vendor_phone, add_vendor_phone_type, current_time[1], current_time[1], add_vendor_address, add_vendor_email, add_vendor_website, add_vendor_notes)
 
     icb_session.current_console_messages = icb_session.console_log(f"Added Vendor {add_vendor_number}: {added_vendor}",icb_session.current_console_messages)
 
 
 def load_single_vendor(window,values, vendor):
-    this_vendor_query = f"""Select * FROM tbl_Vendors WHERE Vendor_ID = {vendor[0]};"""
-    retrieved_vendor = db.execute_read_query_dict(icb_session.connection,this_vendor_query)
+    vendor_repo = VendorRepository(icb_session.connection)
+    retrieved_vendor = [vendor_repo.get_by_id(vendor[0])]
     if type(retrieved_vendor) == str:
         print(retrieved_vendor)
     else:  
@@ -1764,8 +1720,8 @@ def load_vendors_tab(window,values):
     """Loads the vendors tab on the gui"""
     icb_session.vendors = []
     search_term = values['-Vendors_Search_Input-']
-    load_vendors_query = f"""SELECT * FROM tbl_Vendors WHERE Business_Name LIKE '%{search_term}%' OR Merchant_Category LIKE '%{search_term}%' OR Contact_First_Name LIKE '%{search_term}%' OR Contact_Last_Name LIKE '%{search_term}%' OR Preferred_Name LIKE '%{search_term}%' OR Business_Address LIKE '%{search_term}%' OR Business_Email LIKE '%{search_term}%' OR Business_Website LIKE '%{search_term}%' OR Notes LIKE '%{search_term}%' OR Phone_Number LIKE '%{search_term}%';"""
-    retrieved_vendors = db.execute_read_query_dict(icb_session.connection,load_vendors_query)
+    vendor_repo = VendorRepository(icb_session.connection)
+    retrieved_vendors = vendor_repo.search(search_term)
 
     window["-Edit_Vendor_Button-"].update("Edit Vendor")
 
@@ -2665,8 +2621,8 @@ def update_vendor(window,values):
     this_vendor_website = values['-Vendor_Website_Input-']
     this_vendor_notes = values['-Vendor_Notes_Display-']
 
-    update_vendor_query = f"""UPDATE tbl_Vendors SET Edited_Time = '{icb_session.current_time_display[0]}', Business_Name = "{this_vendor_name}", Merchant_Category = "{this_vendor_category}", Contact_First_Name = "{this_vendor_first}", Contact_Last_Name = "{this_vendor_last}", Preferred_Name = "{this_vendor_preferred}", Phone_Number = '{this_vendor_phone}', Phone_Number_Type = '{this_vendor_phone_type}', Business_Address = "{this_vendor_address}", Business_Email = '{this_vendor_email}', Business_Website = '{this_vendor_website}', Notes = "{this_vendor_notes}" WHERE Vendor_ID = {this_vendor};"""
-    this_updated_vendor = db.execute_query(icb_session.connection,update_vendor_query)
+    vendor_repo = VendorRepository(icb_session.connection)
+    this_updated_vendor = vendor_repo.update(this_vendor, this_vendor_name, this_vendor_category, this_vendor_first, this_vendor_last, this_vendor_preferred, this_vendor_phone, this_vendor_phone_type, this_vendor_address, this_vendor_email, this_vendor_website, this_vendor_notes, icb_session.current_time_display[0])
     icb_session.console_log(this_updated_vendor,icb_session.current_console_messages)    
 
 
@@ -2953,8 +2909,9 @@ while True:
             if event == "View Vendors" or event=="New Vendor":
                 load_vendors_tab(icb_session.window,values)
             if event=="New Vendor" or event == f"-New_Vendor_Button-":
-                vendor_number_query = f"""SELECT MAX(Vendor_ID) FROM tbl_Vendors;"""
-                new_vendor_number = db.execute_read_query(icb_session.connection,vendor_number_query)
+                vendor_repo = VendorRepository(icb_session.connection)
+                max_id = vendor_repo.get_max_id()
+                new_vendor_number = [(max_id,)]
                 #print(icb_session.vendor_number)
                 #print(new_vendor_number[0][0])
                 if type(new_vendor_number[0][0]) !=int:
