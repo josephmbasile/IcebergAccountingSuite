@@ -756,8 +756,8 @@ def new_transaction_layout(num):
         if num_records == None or num_records == "None":
             num_records = 0
         transaction_number_str = f"""{int(num_records)+1}"""
-    retrieve_accounts_query = f"""SELECT * FROM tbl_Accounts;"""
-    icb_session.all_accounts = db.execute_read_query_dict(icb_session.connection,retrieve_accounts_query)
+    account_repo = AccountRepository(icb_session.connection)
+    icb_session.all_accounts = account_repo.get_all()
     these_accounts = []
     for account in icb_session.all_accounts:
         these_accounts.append(f"""{account['Account_ID']} - {account['Name']}""") 
@@ -824,8 +824,8 @@ def new_account_layout(num):
 
 def new_invoice_layout(num):
     num = num + 1
-    get_asset_accounts_query = f"""SELECT Account_ID, Name FROM tbl_Accounts WHERE Account_ID Like '10%' ORDER BY Account_ID;"""
-    these_asset_accounts = db.execute_read_query_dict(icb_session.connection,get_asset_accounts_query)
+    account_repo = AccountRepository(icb_session.connection)
+    these_asset_accounts = account_repo.get_by_type_prefix('10')
     #print(these_asset_accounts)
     asset_accounts = []
     if these_asset_accounts != []:
@@ -869,8 +869,8 @@ def new_invoice_layout(num):
 
 def invoice_paid_layout(num):
     num = num + 1
-    asset_accounts_query = f"""SELECT Account_ID, Name FROM tbl_Accounts WHERE Account_ID >10000 AND Account_ID < 11000;"""
-    asset_accounts = db.execute_read_query_dict(icb_session.connection,asset_accounts_query)
+    account_repo = AccountRepository(icb_session.connection)
+    asset_accounts = account_repo.get_by_type_prefix('10')
     #print(asset_accounts)
     accounts = []
     for account in asset_accounts:
