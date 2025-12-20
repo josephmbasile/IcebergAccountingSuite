@@ -3292,13 +3292,12 @@ while True:
                 icb_session.window['-POS_Status_Input-'].update(disabled=True)
                 icb_session.window['-Edit_POS_Button-'].update("Edit Invoice")
                 invoice_id = values['-POS_Number_Display-'][8:]
-                get_updated_invoice_query = f"""SELECT * FROM tbl_Invoices WHERE Invoice_ID = '{invoice_id}';"""
-                icb_session.this_invoice = db.execute_read_query_dict(icb_session.connection,get_updated_invoice_query)[0]                   
+                invoice_repo = InvoiceRepository(icb_session.connection)
+                icb_session.this_invoice = invoice_repo.get_by_id(invoice_id)                   
                 #print(f"line 3365 status {icb_session.this_invoice['Status']}")
                 if values['-POS_Status_Input-'] == "Overdue" and icb_session.this_invoice['Status'] == 'Due':
 
-                    update_invoice_query = f"""UPDATE tbl_Invoices SET Status = 'Overdue', Edited_Time = '{icb_session.current_time_display[0]}' WHERE Invoice_ID = '{invoice_id}';"""
-                    db.execute_query(icb_session.connection,update_invoice_query)
+                    invoice_repo.update(invoice_id=invoice_id, status='Overdue', edited_time=icb_session.current_time_display[0])
                     icb_session.this_invoice['Status'] = 'Overdue'
                     #print(icb_session.this_invoice)
 
@@ -3323,8 +3322,9 @@ while True:
                     #print(invoice_id)
                     check_paid_query = f"""SELECT Transaction_ID from {icb_session.ledger_name} WHERE Name LIKE '{invoice_id}%' AND Debit_Acct IS NOT '10006';"""
                     paid_transactions = db.execute_read_query_dict(icb_session.connection,check_paid_query)
-                    get_invoice_query = f"""SELECT * FROM tbl_Invoices WHERE Invoice_ID = '{invoice_id[8:]}';"""
-                    icb_session.this_invoice = db.execute_read_query_dict(icb_session.connection,get_invoice_query)[0]
+
+                    invoice_repo = InvoiceRepository(icb_session.connection)
+                    icb_session.this_invoice = invoice_repo.get_by_id(invoice_id[8:])
                     icb_session.this_invoice['Status'] = values['-POS_Status_Input-']
                     icb_session.this_invoice['Due_Date'] = f"{current_date}"
                     #print(icb_session.this_invoice['Line_Items'])
@@ -3365,8 +3365,8 @@ while True:
                                 print(f"added_transaction: {added_transaction}")
 
                                 #update the invoice
-                                update_invoice_query = f"""UPDATE tbl_Invoices SET Status = '{values[f'-POS_Status_Input-']}', Edited_Time = '{icb_session.current_time_display[0]}' WHERE Invoice_ID = {icb_session.this_invoice['Invoice_ID']};"""
-                                updated_invoice = db.execute_query(icb_session.connection,update_invoice_query)
+                                #update the invoice
+                                invoice_repo.update(invoice_id=icb_session.this_invoice['Invoice_ID'], status=values[f'-POS_Status_Input-'], edited_time=icb_session.current_time_display[0])
                                 update_pos_view(icb_session.window,values)
                                 invoice_date = f"{icb_session.this_invoice['Created_Time'].replace('Monday, ','')}"
                                 invoice_date = f"{invoice_date.replace('Tuesday, ','')}"
@@ -3385,8 +3385,8 @@ while True:
                     #print(invoice_id)
                     check_paid_query = f"""SELECT Transaction_ID from {icb_session.ledger_name} WHERE Name Like '{invoice_id}%' AND Debit_Acct IS NOT '10006';"""
                     paid_transactions = db.execute_read_query_dict(icb_session.connection,check_paid_query)
-                    get_invoice_query = f"""SELECT * FROM tbl_Invoices WHERE Invoice_ID = '{invoice_id[8:]}';"""
-                    icb_session.this_invoice = db.execute_read_query_dict(icb_session.connection,get_invoice_query)[0]
+                    invoice_repo = InvoiceRepository(icb_session.connection)
+                    icb_session.this_invoice = invoice_repo.get_by_id(invoice_id[8:])
                     change_status = icb_session.this_invoice['Status']
                     icb_session.this_invoice['Status'] = values['-POS_Status_Input-']
                     icb_session.this_invoice['Due_Date'] = f"{current_date}"
@@ -3428,8 +3428,8 @@ while True:
                                 print(f"added_transaction: {added_transaction}")
 
                                 #update the invoice
-                                update_invoice_query = f"""UPDATE tbl_Invoices SET Status = '{values[f'-POS_Status_Input-']}', Edited_Time = '{icb_session.current_time_display[0]}' WHERE Invoice_ID = {icb_session.this_invoice['Invoice_ID']};"""
-                                updated_invoice = db.execute_query(icb_session.connection,update_invoice_query)
+                                #update the invoice
+                                invoice_repo.update(invoice_id=icb_session.this_invoice['Invoice_ID'], status=values[f'-POS_Status_Input-'], edited_time=icb_session.current_time_display[0])
                                 update_pos_view(icb_session.window,values)
                                 invoice_date = f"{icb_session.this_invoice['Created_Time'].replace('Monday, ','')}"
                                 invoice_date = f"{invoice_date.replace('Tuesday, ','')}"
@@ -3452,8 +3452,8 @@ while True:
                     #print(invoice_id)
                     check_paid_query = f"""SELECT Transaction_ID from {icb_session.ledger_name} WHERE Name = '{invoice_id}' AND Debit_Acct IS NOT '10006';"""
                     paid_transactions = db.execute_read_query_dict(icb_session.connection,check_paid_query)
-                    get_invoice_query = f"""SELECT * FROM tbl_Invoices WHERE Invoice_ID = '{invoice_id[8:]}';"""
-                    icb_session.this_invoice = db.execute_read_query_dict(icb_session.connection,get_invoice_query)[0]
+                    invoice_repo = InvoiceRepository(icb_session.connection)
+                    icb_session.this_invoice = invoice_repo.get_by_id(invoice_id[8:])
                     
                     icb_session.this_invoice['Due_Date'] = f"{current_date}"
                     #print(icb_session.this_invoice['Line_Items'])
@@ -3489,8 +3489,8 @@ while True:
 
                         icb_session.this_invoice['Status'] = values['-POS_Status_Input-']
                         #update the invoice
-                        update_invoice_query = f"""UPDATE tbl_Invoices SET Status = '{values[f'-POS_Status_Input-']}', Edited_Time = '{icb_session.current_time_display[0]}' WHERE Invoice_ID = {icb_session.this_invoice['Invoice_ID']};"""
-                        updated_invoice = db.execute_query(icb_session.connection,update_invoice_query)
+                        #update the invoice
+                        invoice_repo.update(invoice_id=icb_session.this_invoice['Invoice_ID'], status=values[f'-POS_Status_Input-'], edited_time=icb_session.current_time_display[0])
                         update_pos_view(icb_session.window,values)
                         invoice_date = f"{icb_session.this_invoice['Created_Time'].replace('Monday, ','')}"
                         invoice_date = f"{invoice_date.replace('Tuesday, ','')}"
