@@ -2096,14 +2096,10 @@ def add_service_to_database(window,values):
     #add_service_photo = "none"#values[f"""-Service_Photo_{icb_session.num}-"""]
     price_input = values[f"""-Service_Price_{icb_session.num}-"""]
     price_input = f"{price_input}".replace("$", "")
-    print(price_input)
-    add_service_price= convert_dollars_to_cents(price_input)
-    print(add_service_price)
+    add_service_price= convert_dollars_to_cents(price_input)S
     add_service_taxable = values[f"""-Service_Taxable_{icb_session.num}-"""]
-
     sku_repo = SkuRepository(icb_session.connection)
     added_service = sku_repo.insert(add_service_number, add_service_description.replace("'","''"), add_service_long_description, add_service_price, add_service_taxable, "False", "Service", current_time[1], current_time[1])
-
     icb_session.current_console_messages = icb_session.console_log(f"Added Service {add_service_number}: {added_service}",icb_session.current_console_messages)
 
 def load_services_tab(window,values):
