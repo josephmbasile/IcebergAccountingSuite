@@ -108,9 +108,12 @@ def format_currency(integer, symbol="$"):
 
 def convert_dollars_to_cents(dollars):
     try:
+        dollars = f"{dollars}".replace("$","")
+        dollars = f"{dollars}".replace(",","")
         return int(dec(dollars) * 100)
     except Exception as e:
-        pass
+        print(f"exception converting currency: {e}")
+        print(dollars)
 
 
 def id_generator(size=30, chars=string.ascii_uppercase + string.digits):
