@@ -34,7 +34,6 @@ from iceberg_utils import get_current_time_info, format_currency, convert_dollar
 import logging
 
 from repository import PropertyRepository, VendorRepository, SkuRepository, AccountRepository, InvoiceRepository, CustomerRepository
-from repository import OwnerRepository
 
 
 #logging.basicConfig(level=logging.DEBUG)
@@ -1136,9 +1135,28 @@ def create_database(values, current_console_messages,window, num, current_year):
 
     #3 Create the Owners table
 
-    #3 Create the Owners table
-    owner_repo = OwnerRepository(icb_session.connection)
-    created_table = owner_repo.create_table()
+    create_table_3_query = f"""CREATE TABLE tbl_Owners (Owner_ID INTEGER NOT NULL"""
+    lines = [   """, First_Name VARCHAR(9999) NOT NULL""",
+                """, Middle_Name VARCHAR(9999)""",
+                """, Last_Name VARCHAR(9999) NOT NULL""",
+                """, Preferred_Name VARCHAR(9999) NOT NULL""",
+                """, Full_Name VARCHAR(9999) NOT NULL""",
+                """, Phone_Number VARCHAR(9999)""",
+                """, Phone_Number_Type VARCHAR(9999)""",
+                """, Created_Time VARCHAR(9999) NOT NULL""", 
+                """, Edited_Time VARCHAR(9999) NOT NULL""" ,
+                """, Home_Address VARCHAR(9999)""",
+                """, Record_Location VARCHAR(9999) NOT NULL""",
+                """, Email VARCHAR(9999)""",
+                """, PRIMARY KEY ("Owner_ID" AUTOINCREMENT)"""
+            ]
+    num_lines = len(lines)
+    for p in range(num_lines):
+        create_table_3_query = create_table_3_query + lines[p]
+    create_table_3_query = create_table_3_query + """);"""
+
+
+    created_table = db.create_tables(icb_session.connection,create_table_3_query)
     print(created_table)
 
 
@@ -2076,7 +2094,11 @@ def add_service_to_database(window,values):
     add_service_description = values[f"""-Service_Description_{icb_session.num}-"""]
     add_service_long_description = values[f"""-Service_Long_Description_{icb_session.num}-"""]
     #add_service_photo = "none"#values[f"""-Service_Photo_{icb_session.num}-"""]
-    add_service_price= convert_dollars_to_cents(values[f"""-Service_Price_{icb_session.num}-"""])
+    price_input = values[f"""-Service_Price_{icb_session.num}-"""]
+    price_input = f"{price_input}".replace("$", "")
+    print(price_input)
+    add_service_price= convert_dollars_to_cents(price_input)
+    print(add_service_price)
     add_service_taxable = values[f"""-Service_Taxable_{icb_session.num}-"""]
 
     sku_repo = SkuRepository(icb_session.connection)
