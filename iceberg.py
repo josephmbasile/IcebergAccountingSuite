@@ -1643,9 +1643,8 @@ def update_customers_view(window, values):
             these_invoices = invoice_repo.get_totals_by_customer_and_status(customer['Customer_ID'], ['Due', 'Overdue'])
             balance = 0
             for invoice in these_invoices:
-                total = f"{invoice['Total']}".replace("$","")
-                total = f"{total}".replace(",","")
-                balance = balance + int(dec(total)*100)
+                total = int(invoice['Total'])
+                balance = balance + total
             icb_session.customers.append([f"{customer['Customer_ID']}",f"{customer['Customer_Company_Name']}",f"{customer['Customer_First_Name']} {customer['Customer_Last_Name']}",f"{customer['Customer_Phone_Number']}",f"{customer['Customer_Email']}", f"{format_currency(balance)}"])
         icb_session.window["-View_Customers_Content-"].update(icb_session.customers)
         window['-Customer_Name_Input-'].update("")
@@ -2012,7 +2011,9 @@ def update_pos_view(window,values):
             #print(invoices)
             if len(invoices) > 0 and type(invoices) == list:
                 for invoice in invoices:
-                    icb_session.invoices.append([f"{invoice['Invoice_ID']}",f"{customer['Customer_First_Name']} {customer['Customer_Last_Name']}",f"{customer['Customer_Phone_Number']}",f"{customer['Customer_Email']}",f"{invoice['Total']}", f"{invoice['Status']}"])
+                    total = format_currency(invoice['Total'])
+                    #print(f"total: {total}") 
+                    icb_session.invoices.append([f"{invoice['Invoice_ID']}",f"{customer['Customer_First_Name']} {customer['Customer_Last_Name']}",f"{customer['Customer_Phone_Number']}",f"{customer['Customer_Email']}",total, f"{invoice['Status']}"])
                 icb_session.invoices.sort(reverse=True)
             icb_session.window["-View_POS_Content-"].update(icb_session.invoices)
     else:
@@ -2022,8 +2023,10 @@ def update_pos_view(window,values):
         if len(invoices) > 0 and type(invoices) == list:
             for invoice in invoices:
                 customer = [customer_repo.get_by_id(invoice['Customer_ID'])]
-                icb_session.invoices.append([f"{invoice['Invoice_ID']}",f"{customer[0]['Customer_First_Name']} {customer[0]['Customer_Last_Name']}",f"{customer[0]['Customer_Phone_Number']}",f"{customer[0]['Customer_Email']}",f"{invoice['Total']}", f"{invoice['Status']}"])
-                icb_session.window["-View_POS_Content-"].update(icb_session.invoices)
+                total = format_currency(invoice['Total'])
+                #print(f"total: {total}") 
+                icb_session.invoices.append([f"{invoice['Invoice_ID']}",f"{customer[0]['Customer_First_Name']} {customer[0]['Customer_Last_Name']}",f"{customer[0]['Customer_Phone_Number']}",f"{customer[0]['Customer_Email']}",f"{total}", f"{invoice['Status']}"])
+            icb_session.window["-View_POS_Content-"].update(icb_session.invoices)
     window['-POS_Number_Display-'].update(f"Invoice Number")
     window['-POS_CustomerName_Input-'].update("")
     window['-POS_CustomerContact_Input-'].update(f"""""")
@@ -2059,9 +2062,9 @@ def load_single_invoice(window, values, invoice_id):
             window['-POS_CustomerEmail_Input-'].update(this_customer[0]['Customer_Email'])
             window['-POS_CustomerPhone_Input-'].update(this_customer[0]['Customer_Phone_Number'])
             window['-POS_TrackingCode_Input-'].update(icb_session.this_invoice['Tracking_Code'])
-            window['-POS_Subtotal_Input-'].update(f"{icb_session.this_invoice['Subtotal']}")
-            window['-POS_SalesTax_Input-'].update(f"{icb_session.this_invoice['Sales_Tax']}")
-            window['-POS_Total_Input-'].update(f"{icb_session.this_invoice['Total']}")
+            window['-POS_Subtotal_Input-'].update(format_currency(f"{icb_session.this_invoice['Subtotal']}"))
+            window['-POS_SalesTax_Input-'].update(format_currency(f"{icb_session.this_invoice['Sales_Tax']}"))
+            window['-POS_Total_Input-'].update(format_currency(f"{icb_session.this_invoice['Total']}"))
             window['-POS_DueDate_Input-'].update(f"{icb_session.this_invoice['Due_Date']}")
             window['-POS_Status_Input-'].update(icb_session.this_invoice['Status'])
             window['-View_POS_Button-'].update(f"{icb_session.this_invoice['Location']}")
@@ -2293,9 +2296,9 @@ def generate_new_invoice(new_invoice_window, values_newi, date):
         draw.text((1600,925+((i+1)*(70+50))),f"{icb_session.these_line_items[i][3]}", '#000000', medium_font)
         draw.text((1900,925+((i+1)*(70+50))),f"{icb_session.these_line_items[i][4]}", '#000000', medium_font)
     
-    draw.text((1630,925+((num_line_items+1)*(70+50))),f"Subtotal: {icb_session.this_invoice['Subtotal']}", '#000000', medium_font)    
-    draw.text((1630,925+((num_line_items+2)*(70+50))),f"Tax:        {icb_session.this_invoice['Sales_Tax']}", '#000000', medium_font)    
-    draw.text((1630,925+((num_line_items+3)*(70+50))),f"Total:      {icb_session.this_invoice['Total']}", '#000000', medium_font)    
+    draw.text((1630,925+((num_line_items+1)*(70+50))),f"Subtotal: {format_currency(f"{icb_session.this_invoice['Subtotal']}".replace("$",""))}", '#000000', medium_font)    
+    draw.text((1630,925+((num_line_items+2)*(70+50))),f"Tax:        {format_currency(f"{icb_session.this_invoice['Sales_Tax']}".replace("$",""))}", '#000000', medium_font)    
+    draw.text((1630,925+((num_line_items+3)*(70+50))),f"Total:      {format_currency(f"{icb_session.this_invoice['Total']}".replace("$",""))}", '#000000', medium_font)    
     draw.text((1275-380,2900),f"Status: {icb_session.this_invoice['Status']} {invoice_paid_date}", '#000000', medium_font)    
 
 
@@ -2383,7 +2386,7 @@ def save_invoice_to_database(window,values,filepath):
     transactions_count = db.execute_read_query_dict(icb_session.connection,count_transactions_query)
     #print(transactions_count)
 
-    this_invoice_subtotal = int(dec(f"{icb_session.this_invoice['Subtotal'].replace(",","")}".replace("$",""))*100)
+    this_invoice_subtotal = int(icb_session.this_invoice['Subtotal'])
     accounts_receivable_transaction = int(transactions_count[0]['COUNT(*)'])+1
     add_transaction_query = f"""INSERT INTO {icb_session.ledger_name} (Transaction_ID, Credit_Acct, Debit_Acct, Amount, Name, Notes, Created_Time, 
     Edited_Time, Transaction_Date, Record_Image, Vendor, Customer) VALUES ('{accounts_receivable_transaction}',
@@ -2393,7 +2396,7 @@ def save_invoice_to_database(window,values,filepath):
     added_transaction = db.execute_query(icb_session.connection, add_transaction_query)
     print(f"added_transaction: {added_transaction}")
 
-    this_invoice_sales_tax = int(dec(f"{icb_session.this_invoice['Sales_Tax'].replace(",","")}".replace("$",""))*100)
+    this_invoice_sales_tax = int(icb_session.this_invoice['Sales_Tax'])
     add_transaction_query = f"""INSERT INTO {icb_session.ledger_name} (Transaction_ID, Credit_Acct, Debit_Acct, Amount, Name, Notes, Created_Time, 
     Edited_Time, Transaction_Date, Record_Image, Vendor, Customer) VALUES ('{accounts_receivable_transaction+1}',
     '13003','{icb_session.transaction_debit_account}', '{this_invoice_sales_tax}', 'Invoice {icb_session.this_invoice['Invoice_ID']} Sales Tax Payable', 
@@ -3232,11 +3235,17 @@ while True:
                         icb_session.transaction_debit_account = values_newi[f"-Invoice_Debit_{icb_session.num}-"][:5]
                         icb_session.this_invoice["Invoice_ID"] = f"{this_invoice_id}"
                         icb_session.this_invoice["Line_Items"] = icb_session.these_line_items
+                        subtotal = values_newi[f"-Invoice_Subtotal_{icb_session.num}-"]
+                        subtotal = convert_dollars_to_cents(f"{subtotal}".replace("$",""))
+                        icb_session.this_invoice["Subtotal"] = subtotal
 
-                        
-                        icb_session.this_invoice["Subtotal"] = values_newi[f"-Invoice_Subtotal_{icb_session.num}-"]
-                        icb_session.this_invoice["Sales_Tax"] = values_newi[f"-Invoice_SalesTax_{icb_session.num}-"]
-                        icb_session.this_invoice["Total"] = values_newi[f"-Invoice_Total_{icb_session.num}-"]
+                        sales_tax = values_newi[f"-Invoice_SalesTax_{icb_session.num}-"]
+                        sales_tax = convert_dollars_to_cents(f"{sales_tax}".replace("$",""))
+                        icb_session.this_invoice["Sales_Tax"] = sales_tax
+
+                        total = values_newi[f"-Invoice_Total_{icb_session.num}-"]
+                        total = convert_dollars_to_cents(f"{total}".replace("$",""))
+                        icb_session.this_invoice["Total"] = total
                         icb_session.this_invoice["Due_Date"] = values_newi[f"-Invoice_Due_Date_{icb_session.num}-"]
                         icb_session.this_invoice["Status"] = values_newi[f"-Invoice_Status_{icb_session.num}-"]
                         icb_session.this_invoice["Customer_ID"] = icb_session.these_customers[values_newi[f"-Invoice_Customers_Results_{icb_session.num}-"][0]][0]
@@ -3325,7 +3334,7 @@ while True:
                                 transactions_count = db.execute_read_query_dict(icb_session.connection,count_transactions_query)
                                 #print(transactions_count)
                                 
-                                this_invoice_subtotal = int(dec(f"{icb_session.this_invoice['Subtotal'].replace(",","")}".replace("$",""))*100)
+                                this_invoice_subtotal = int(icb_session.this_invoice['Subtotal'])
                                 accounts_receivable_transaction = int(transactions_count[0]['COUNT(*)'])+1
                                 add_transaction_query = f"""INSERT INTO {icb_session.ledger_name} (Transaction_ID, Credit_Acct, Debit_Acct, Amount, Name, Notes, Created_Time, 
                                 Edited_Time, Transaction_Date, Record_Image, Vendor, Customer) VALUES ('{accounts_receivable_transaction}',
@@ -3335,7 +3344,7 @@ while True:
                                 added_transaction = db.execute_query(icb_session.connection, add_transaction_query)
                                 print(f"added_transaction: {added_transaction}")
 
-                                this_invoice_sales_tax = int(dec(f"{icb_session.this_invoice['Sales_Tax'].replace(",","")}".replace("$",""))*100)
+                                this_invoice_sales_tax = int(icb_session.this_invoice['Sales_Tax'])
                                 add_transaction_query = f"""INSERT INTO {icb_session.ledger_name} (Transaction_ID, Credit_Acct, Debit_Acct, Amount, Name, Notes, Created_Time, 
                                 Edited_Time, Transaction_Date, Record_Image, Vendor, Customer) VALUES ('{accounts_receivable_transaction+1}',
                                 '10006','{values_invoice[f'-Invoice_Debit_Acct_{icb_session.num}-'][:5]}', '{this_invoice_sales_tax}', 'Invoice {icb_session.this_invoice['Invoice_ID']} Sales Tax Payable', 
@@ -3388,7 +3397,7 @@ while True:
                                 transactions_count = db.execute_read_query_dict(icb_session.connection,count_transactions_query)
                                 #print(transactions_count)
                                 
-                                this_invoice_subtotal = int(dec(f"{icb_session.this_invoice['Subtotal'].replace(",","")}".replace("$",""))*100)
+                                this_invoice_subtotal = int(icb_session.this_invoice['Subtotal'])
                                 accounts_receivable_transaction = int(transactions_count[0]['COUNT(*)'])+1
                                 add_transaction_query = f"""INSERT INTO {icb_session.ledger_name} (Transaction_ID, Credit_Acct, Debit_Acct, Amount, Name, Notes, Created_Time, 
                                 Edited_Time, Transaction_Date, Record_Image, Vendor, Customer) VALUES ('{accounts_receivable_transaction}',
@@ -3398,7 +3407,7 @@ while True:
                                 added_transaction = db.execute_query(icb_session.connection, add_transaction_query)
                                 print(f"added_transaction: {added_transaction}")
 
-                                this_invoice_sales_tax = int(dec(f"{icb_session.this_invoice['Sales_Tax'].replace(",","")}".replace("$",""))*100)
+                                this_invoice_sales_tax = int(icb_session.this_invoice['Sales_Tax'])
                                 add_transaction_query = f"""INSERT INTO {icb_session.ledger_name} (Transaction_ID, Credit_Acct, Debit_Acct, Amount, Name, Notes, Created_Time, 
                                 Edited_Time, Transaction_Date, Record_Image, Vendor, Customer) VALUES ('{accounts_receivable_transaction+1}',
                                 '{values_invoice[f'-Invoice_Debit_Acct_{icb_session.num}-'][:5]}','13003', '{this_invoice_sales_tax}', 'Invoice {icb_session.this_invoice['Invoice_ID']} Sales Tax Payable', 
@@ -3445,7 +3454,7 @@ while True:
                         transactions_count = db.execute_read_query_dict(icb_session.connection,count_transactions_query)
                         #print(transactions_count)
                         
-                        this_invoice_subtotal = int(dec(f"{icb_session.this_invoice['Subtotal'].replace(",","")}".replace("$",""))*100)
+                        this_invoice_subtotal = int(icb_session.this_invoice['Subtotal'])
                         accounts_receivable_transaction = int(transactions_count[0]['COUNT(*)'])+1
                         add_transaction_query = f"""INSERT INTO {icb_session.ledger_name} (Transaction_ID, Credit_Acct, Debit_Acct, Amount, Name, Notes, Created_Time, 
                         Edited_Time, Transaction_Date, Record_Image, Vendor, Customer) VALUES ('{accounts_receivable_transaction}','10006', '15001',
@@ -3456,7 +3465,7 @@ while True:
                         
                         print(f"added_transaction: {added_transaction}")
 
-                        this_invoice_sales_tax = int(dec(f"{icb_session.this_invoice['Sales_Tax'].replace(",","")}".replace("$",""))*100)
+                        this_invoice_sales_tax = int(icb_session.this_invoice['Sales_Tax'])
                         accounts_receivable_transaction = int(transactions_count[0]['COUNT(*)'])+2
                         add_transaction_query = f"""INSERT INTO {icb_session.ledger_name} (Transaction_ID, Credit_Acct, Debit_Acct, Amount, Name, Notes, Created_Time, 
                         Edited_Time, Transaction_Date, Record_Image, Vendor, Customer) VALUES ('{accounts_receivable_transaction}','10006', '13003',
