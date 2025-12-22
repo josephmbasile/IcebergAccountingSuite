@@ -55,18 +55,17 @@ week_past = current_date - datetime.timedelta(6)
 class new_session:
     def __init__(self):
         self.current_time_display = get_current_time_info()
-        self.ledger_name = ""#
-        self.synchronized = "No"#
-        self.connection = False#
-        self.num = 1#
-        self.guitimer="Initializing" ##
-        #print(self.guitimer)
-        self.db_name = ""#
-        self.filekey = ""#
-        self.filename = ""#
+        self.ledger_name = ""
+        self.synchronized = "No"
+        self.connection = False
+        self.num = 1
+        self.guitimer="Initializing"
+        self.db_name = ""
+        self.filekey = ""
+        self.filename = ""
         self.database_loaded = False
         self.vendor_number = int(0)
-        self.save_location = False#
+        self.save_location = False
         self.account_number = False
         self.window = False
         self.vendors = []
@@ -1584,7 +1583,7 @@ def get_customer(window, values, customer_id):
     customer_repo = CustomerRepository(icb_session.connection)
     this_customer_id = str(customer_id)
     customer = customer_repo.get_by_id(this_customer_id)
-    
+
     if not customer:
         return "None"
     else:
@@ -1654,7 +1653,7 @@ def update_customers_view(window, values):
 
 def load_single_customer(window, values, customer_id):
     """Loads a single customer into the side panel."""
-    """Loads a single customer into the side panel."""
+
     customer_repo = CustomerRepository(icb_session.connection)
     # customer_id passed in might be a tuple/list from the table selection, so we take index 0
     retrieved_customer = customer_repo.get_by_id(customer_id[0])
@@ -1683,7 +1682,6 @@ def load_ledger_tab(window, values):
     """Loads transactions into the Ledger."""
     selected_year = values['-Ledger_Year_Picker-']
 
-
     years = ["All Years"]
     get_ledger_query = f"""SELECT Transaction_Date FROM {icb_session.ledger_name};"""
     current_ledger = db.execute_read_query_dict(icb_session.connection,get_ledger_query)
@@ -1695,7 +1693,7 @@ def load_ledger_tab(window, values):
                 already_year = True
         if already_year == False:
             years.append(this_year)
-    #print(years)
+    
     window['-Ledger_Year_Picker-'].update("All Years",values=years)
     window['-Ledger_Search_Input-'].update("")
     transactions_query = ""
@@ -1713,11 +1711,11 @@ def load_ledger_tab(window, values):
         OR Amount LIKE '%{convert_dollars_to_cents(values['-Ledger_Search_Input-'])}%' AND Transaction_Date <= '{selected_year}-12-31' AND Transaction_Date >= '{selected_year}-01-01' OR Notes LIKE '%{values['-Ledger_Search_Input-']}%' AND Transaction_Date <= '{selected_year}-12-31' AND Transaction_Date >= '{current_year}-01-01' 
         OR Vendor = '{values['-Ledger_Search_Input-']}' AND Transaction_Date <= '{selected_year}-12-31' AND Transaction_Date >= '{selected_year}-01-01' 
         OR Customer = '{values['-Ledger_Search_Input-']}' AND Transaction_Date <= '{selected_year}-12-31' AND Transaction_Date >= '{selected_year}-01-01' ORDER BY Transaction_ID DESC;"""
-    #print(transactions_query)
+    
     icb_session.transactions = []
-    #print(icb_session.transactions)
+    
     these_transactions = db.execute_read_query_dict(icb_session.connection,transactions_query)
-    #print(these_transactions)
+    
     if len(these_transactions) > 0 and type(these_transactions) == list:        
         for transaction in these_transactions:
             retrieved_customer = get_customer(icb_session.window,values,transaction['Customer'])
@@ -1752,8 +1750,6 @@ def search_ledger(window,values):
     """Loads transactions into the Ledger."""
     selected_year = values['-Ledger_Year_Picker-']
 
-
-
     transactions_query = ""
     if selected_year == "All Years":
         transactions_query = f"""SELECT * FROM {icb_session.ledger_name} WHERE Transaction_ID 
@@ -1769,11 +1765,11 @@ def search_ledger(window,values):
         OR Amount LIKE '%{convert_dollars_to_cents(values['-Ledger_Search_Input-'])}%' AND Transaction_Date <= '{selected_year}-12-31' AND Transaction_Date >= '{selected_year}-01-01' OR Notes LIKE '%{values['-Ledger_Search_Input-']}%' AND Transaction_Date <= '{selected_year}-12-31' AND Transaction_Date >= '{current_year}-01-01' 
         OR Vendor = '{values['-Ledger_Search_Input-']}' AND Transaction_Date <= '{selected_year}-12-31' AND Transaction_Date >= '{selected_year}-01-01' 
         OR Customer = '{values['-Ledger_Search_Input-']}' AND Transaction_Date <= '{selected_year}-12-31' AND Transaction_Date >= '{selected_year}-01-01' ORDER BY Transaction_ID DESC;"""
-    #print(transactions_query)
+    
     icb_session.transactions = []
-    #print(icb_session.transactions)
+    
     these_transactions = db.execute_read_query_dict(icb_session.connection,transactions_query)
-    #print(these_transactions)
+    
     if len(these_transactions) > 0 and type(these_transactions) == list:        
         for transaction in these_transactions:
             retrieved_customer = get_customer(icb_session.window,values,transaction['Customer'])
@@ -1788,8 +1784,8 @@ def search_ledger(window,values):
     
 
     else:
-        #icb_session.transactions = []
         icb_session.current_console_messages = icb_session.console_log("Add a new Transaction to the database to get started.",icb_session.current_console_messages)
+    
     window['-Ledger_Name_Input-'].update("", readonly=True)
     window['-Ledger_Date_Input-'].update("", readonly=True)
     window['-Ledger_Recorded_Input-'].update("", readonly=True)
@@ -1802,7 +1798,6 @@ def search_ledger(window,values):
     window["-Transaction_Image_Button-"].update("Record")
     window['-Transaction_Notes_Display-'].update("", disabled=True)
     window['-Transaction_Number_Display-'].update("Transaction Number")
-
 
 
 def load_transaction_details(transaction_number):
