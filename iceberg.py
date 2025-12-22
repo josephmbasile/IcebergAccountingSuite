@@ -1494,10 +1494,7 @@ def save_account_changes(window, values):
     """Saves account changes to the database."""
 
     current_time = get_current_time_info()
-    
-    
-    
-    
+
     repo = AccountRepository(icb_session.connection)
     updated_account = repo.update(
         values['-Edit_Account_Number_Input-'],
@@ -1511,7 +1508,6 @@ def save_account_changes(window, values):
     )
     icb_session.current_console_messages = icb_session.console_log(f"""Updated Account {values['-Edit_Account_Number_Input-']}; {updated_account}""",icb_session.current_console_messages)
     
-
 def add_vendor_to_database(window,values):
     """Adds a vendor to the database based on the form input."""
     current_time = get_current_time_info()
@@ -1532,7 +1528,6 @@ def add_vendor_to_database(window,values):
     added_vendor = vendor_repo.insert(add_vendor_number, add_vendor_name, add_vendor_category, add_vendor_contact_first, add_vendor_contact_last, add_vendor_contact_preferrred, add_vendor_phone, add_vendor_phone_type, current_time[1], current_time[1], add_vendor_address, add_vendor_email, add_vendor_website, add_vendor_notes)
 
     icb_session.current_console_messages = icb_session.console_log(f"Added Vendor {add_vendor_number}: {added_vendor}",icb_session.current_console_messages)
-
 
 def load_single_vendor(window,values, vendor):
     vendor_repo = VendorRepository(icb_session.connection)
@@ -1578,22 +1573,18 @@ def load_vendors_tab(window,values):
 
 
     if len(retrieved_vendors) > 0:
-        #print(retrieved_vendors[0]['Vendor_ID'])
-        
         for vendor in retrieved_vendors:
             icb_session.vendors.append([f"{vendor['Vendor_ID']}",f"{vendor['Business_Name']}",f"{vendor['Contact_First_Name']} {vendor['Contact_Last_Name']}",f"{vendor['Phone_Number']} ({vendor['Phone_Number_Type']})",f"{vendor['Business_Email']}"])
         
-        #print(icb_session.vendors)
     window["-View_Vendors_Content-"].update(icb_session.vendors)
 
 
 def get_customer(window, values, customer_id):
     """Retrieves customer data from the database."""
-    """Retrieves customer data from the database."""
     customer_repo = CustomerRepository(icb_session.connection)
     this_customer_id = str(customer_id)
     customer = customer_repo.get_by_id(this_customer_id)
-    #print(customer)
+    
     if not customer:
         return "None"
     else:
