@@ -1589,13 +1589,15 @@ def load_vendors_tab(window,values):
 
 def get_customer(window, values, customer_id):
     """Retrieves customer data from the database."""
-    customer_query = f"""SELECT * FROM tbl_Customers WHERE Customer_ID = '{customer_id}';"""
-    customer = db.execute_read_query_dict(icb_session.connection,customer_query)
+    """Retrieves customer data from the database."""
+    customer_repo = CustomerRepository(icb_session.connection)
+    this_customer_id = str(customer_id)
+    customer = customer_repo.get_by_id(this_customer_id)
     #print(customer)
-    if len(customer) < 1:
+    if not customer:
         return "None"
     else:
-        return customer[0]
+        return customer
 
 def add_customer_to_database(window,values):
     """Adds a customer to the database based on the form input."""
@@ -1661,23 +1663,26 @@ def update_customers_view(window, values):
 
 def load_single_customer(window, values, customer_id):
     """Loads a single customer into the side panel."""
-    this_customer_query = f"""Select * FROM tbl_Customers WHERE Customer_ID = '{customer_id[0]}';"""
-    retrieved_customer = db.execute_read_query_dict(icb_session.connection,this_customer_query)
-    if type(retrieved_customer) == str:
-        print(retrieved_customer)
+    """Loads a single customer into the side panel."""
+    customer_repo = CustomerRepository(icb_session.connection)
+    # customer_id passed in might be a tuple/list from the table selection, so we take index 0
+    retrieved_customer = customer_repo.get_by_id(customer_id[0])
+
+    if not retrieved_customer:
+        print("Customer not found")
     else:  
         #print("retrieved_customer[0]")
-        #print(retrieved_customer[0]['Customer_ID'])
-        window['-Customer_Number_Display-'].update(f"Customer Number {retrieved_customer[0]['Customer_ID']}")
-        window['-Customer_Name_Input-'].update(retrieved_customer[0]['Customer_Company_Name'])
-        window['-Customer_Contact_First_Input-'].update(retrieved_customer[0]['Customer_First_Name'])
-        window['-Customer_Contact_Last_Input-'].update(retrieved_customer[0]['Customer_Last_Name'])
-        window['-Customer_Contact_Preferred_Input-'].update(retrieved_customer[0]['Preferred_Name'])
-        window['-Customer_Address_Input-'].update(retrieved_customer[0]['Customer_Address'])
-        window['-Customer_Phone_Input-'].update(retrieved_customer[0]['Customer_Phone_Number'])
-        window['-Customer_PhoneType_Input-'].update(f"{retrieved_customer[0]['Customer_Phone_Number_Type']}")        
-        window['-Customer_Email_Input-'].update(retrieved_customer[0]['Customer_Email'])
-        window['-Customer_Notes_Display-'].update(retrieved_customer[0]['Notes'])    
+        #print(retrieved_customer['Customer_ID'])
+        window['-Customer_Number_Display-'].update(f"Customer Number {retrieved_customer['Customer_ID']}")
+        window['-Customer_Name_Input-'].update(retrieved_customer['Customer_Company_Name'])
+        window['-Customer_Contact_First_Input-'].update(retrieved_customer['Customer_First_Name'])
+        window['-Customer_Contact_Last_Input-'].update(retrieved_customer['Customer_Last_Name'])
+        window['-Customer_Contact_Preferred_Input-'].update(retrieved_customer['Preferred_Name'])
+        window['-Customer_Address_Input-'].update(retrieved_customer['Customer_Address'])
+        window['-Customer_Phone_Input-'].update(retrieved_customer['Customer_Phone_Number'])
+        window['-Customer_PhoneType_Input-'].update(f"{retrieved_customer['Customer_Phone_Number_Type']}")        
+        window['-Customer_Email_Input-'].update(retrieved_customer['Customer_Email'])
+        window['-Customer_Notes_Display-'].update(retrieved_customer['Notes'])    
 
 
 
@@ -2231,10 +2236,10 @@ def generate_new_invoice(new_invoice_window, values_newi, date):
     this_org_phone = property_repo.get('Phone Number') or ""
 
     #Get the customer
-    get_customer_query = f"""SELECT * FROM tbl_Customers WHERE Customer_ID = '{icb_session.this_invoice['Customer_ID']}';"""
-    this_customer = db.execute_read_query_dict(icb_session.connection,get_customer_query)
+    #Get the customer
+    customer_repo = CustomerRepository(icb_session.connection)
+    this_customer = customer_repo.get_by_id(icb_session.this_invoice['Customer_ID'])
     #print(f"{this_customer}")
-    this_customer = this_customer[0]
     #Create the directory
     filenames = []
     foldername = icb_session.this_invoice['Invoice_ID']
@@ -2461,8 +2466,20 @@ def update_customer(window,values):
     this_customer_email = values["-Customer_Email_Input-"]
     this_customer_notes = values['-Customer_Notes_Display-']
 
-    update_customer_query = f"""UPDATE tbl_Customers SET Edited_Time = '{icb_session.current_time_display[0]}', Customer_Company_Name = "{this_customer_name}", Customer_First_Name = "{this_customer_first}", Customer_Last_Name = "{this_customer_last}", Preferred_Name = "{this_customer_preferred}", Customer_Phone_Number = "{this_customer_phone}", Customer_Phone_Number_Type = '{this_customer_phone_type}', Customer_Address = "{this_customer_address}", Customer_Email = '{this_customer_email}', Notes = "{this_customer_notes}" WHERE Customer_ID = {this_customer};"""
-    this_updated_customer = db.execute_query(icb_session.connection,update_customer_query)
+    customer_repo = CustomerRepository(icb_session.connection)
+    this_updated_customer = customer_repo.update(
+        customer_id=this_customer,
+        company_name=this_customer_name,
+        first_name=this_customer_first,
+        last_name=this_customer_last,
+        preferred_name=this_customer_preferred,
+        phone=this_customer_phone,
+        phone_type=this_customer_phone_type,
+        address=this_customer_address,
+        email=this_customer_email,
+        notes=this_customer_notes,
+        edited_time=icb_session.current_time_display[0]
+    )
     icb_session.console_log(this_updated_customer,icb_session.current_console_messages)    
 
 
@@ -2807,12 +2824,12 @@ while True:
                     icb_session.window[tab_keys[i]].update(visible=False)
             update_customers_view(icb_session.window,values)
             if event == "New Customer" or event == f"-New_Customer_Button-":
-                customer_number_query = f"""SELECT MAX(Customer_ID) FROM tbl_Customers;"""
-                new_customer_number = db.execute_read_query(icb_session.connection,customer_number_query)
+                customer_repo = CustomerRepository(icb_session.connection)
+                new_customer_number = [[customer_repo.get_max_id()]]
                 #print(icb_session.customer_number)
                 #print(new_customer_number[0][0])
                 
-                if type(new_customer_number[0][0]) != int:
+                if new_customer_number[0][0] is None:
                     icb_session.customer_number = int(1)
                 else:
                     icb_session.customer_number = new_customer_number[0][0] + 1
@@ -3166,8 +3183,8 @@ while True:
                     break
                 elif event_newi == f"-Invoice_Customer_Search_{icb_session.num}-": 
                     search_term = values_newi[f"-Invoice_Customer_Search_{icb_session.num}-"]
-                    customer_search_query = f"""SELECT Customer_ID, Customer_Company_Name, Customer_First_Name, Customer_Last_Name FROM tbl_Customers WHERE Customer_First_Name LIKE '%{search_term}%' OR Customer_Last_Name LIKE '%{search_term}%' OR Customer_Company_Name LIKE '%{search_term}%' OR Preferred_Name LIKE '%{search_term}%' OR Customer_Phone_Number LIKE '%{search_term}%' OR Customer_Email LIKE '%{search_term}%' OR Notes LIKE '%{search_term}%';"""
-                    customers = db.execute_read_query_dict(icb_session.connection,customer_search_query)
+                    customer_repo = CustomerRepository(icb_session.connection)
+                    customers = customer_repo.search(search_term)
                     #new_transaction_window[f"-Transaction_Date_{icb_session.num}-"].update(icb_session.transaction_date)
                     icb_session.these_customers = []
                     for customer in customers:
@@ -3180,13 +3197,13 @@ while True:
                         this_customer = int(icb_session.these_customers[values_newi[f'-Invoice_Customers_Results_{icb_session.num}-'][0]][0])
                     #print(this_customer)
                     icb_session.this_invoice["Customer_ID"] = this_customer
-                    get_customer_query = f"""SELECT * from tbl_Customers WHERE Customer_ID ={this_customer};"""
-                    this_customer_complete = db.execute_read_query_dict(icb_session.connection,get_customer_query)
+                    customer_repo = CustomerRepository(icb_session.connection)
+                    this_customer_complete = customer_repo.get_by_id(this_customer)
                     #print(this_customer_complete)
-                    if type(this_customer_complete) != str:
-                        new_invoice_window[f"-Invoice_Customer_Name_{icb_session.num}-"].update(this_customer_complete[0]['Customer_Company_Name'])
-                        new_invoice_window[f"-Invoice_Customer_Address_{icb_session.num}-"].update(this_customer_complete[0]['Customer_Address'])
-                        new_invoice_window[f"-Invoice_Customer_Contact_{icb_session.num}-"].update(f"{this_customer_complete[0]['Customer_First_Name']} {this_customer_complete[0]['Customer_Last_Name']}")
+                    if this_customer_complete:
+                        new_invoice_window[f"-Invoice_Customer_Name_{icb_session.num}-"].update(this_customer_complete['Customer_Company_Name'])
+                        new_invoice_window[f"-Invoice_Customer_Address_{icb_session.num}-"].update(this_customer_complete['Customer_Address'])
+                        new_invoice_window[f"-Invoice_Customer_Contact_{icb_session.num}-"].update(f"{this_customer_complete['Customer_First_Name']} {this_customer_complete['Customer_Last_Name']}")
                 elif event_newi == f"-Invoice_Search_Input_{icb_session.num}-":
 
                     search_term = values_newi[f"-Invoice_Search_Input_{icb_session.num}-"]
