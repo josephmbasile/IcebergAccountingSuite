@@ -35,9 +35,20 @@ Subsequent startups:
 
     > python3 iceberg.py
 
+### Compiling the software (Linux)
+Compiling this software into an executable can make it more convenient to run Iceberg. 
+
+Compiling this software from code requires Python 3. Please follow the installation instructions here: https://www.python.org/downloads/
+
+Once you have Python 3 installed, open a terminal and navigate to the Iceberg folder. Enter the following command:
+
+   > ./compile.s
+    
+Once the command runs you will have iceberg.exe in your Iceberg folder.
+
 ### Running Tests
 
-    > pytest
+   > pytest
 
 ### Accounting Databases
 #### Creating a Database
