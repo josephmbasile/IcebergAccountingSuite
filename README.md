@@ -46,6 +46,10 @@ Once you have Python 3 installed, open a terminal and navigate to the Iceberg fo
     
 Once the command runs you will have iceberg.exe in your Iceberg folder.
 
+*Tip! If you get a permission denied error, enter the following command to give yourself execute permission:*
+
+   > chmod u+x compile.s
+
 ### Running Tests
 
    > pytest
