@@ -1836,7 +1836,7 @@ def add_transaction_to_database(values):
     this_image = values[f"-Transaction_Image_Input_{icb_session.num}-"]
     if this_image[-4:] == ".pdf":
         this_image = this_image[:-4]+'_0.png'
-    this_vendor = values[f"-Transaction_Vendor_{icb_session.num}-"][:f"{values[f"-Transaction_Vendor_{icb_session.num}-"]}".find(" ")]
+    this_vendor = values[f"-Transaction_Vendor_{icb_session.num}-"][:values[f"-Transaction_Vendor_{icb_session.num}-"].find(" ")]
     #this_customer = values[f"-Transaction_Customer_{icb_session.num}-"]
     this_transaction_date = values[f'-Transaction_Date_String_{icb_session.num}-']
     add_transaction_query = f"""INSERT INTO {icb_session.ledger_name} (Credit_Acct, Debit_Acct, Amount, Name, Notes, Created_Time, Edited_Time, Transaction_Date, Record_Image, Vendor)
@@ -2287,9 +2287,9 @@ def generate_new_invoice(new_invoice_window, values_newi, date):
         draw.text((1600,925+((i+1)*(70+50))),f"{icb_session.these_line_items[i][3]}", '#000000', medium_font)
         draw.text((1900,925+((i+1)*(70+50))),f"{icb_session.these_line_items[i][4]}", '#000000', medium_font)
     
-    draw.text((1630,925+((num_line_items+1)*(70+50))),f"Subtotal: {format_currency(f"{icb_session.this_invoice['Subtotal']}".replace("$",""))}", '#000000', medium_font)    
-    draw.text((1630,925+((num_line_items+2)*(70+50))),f"Tax:        {format_currency(f"{icb_session.this_invoice['Sales_Tax']}".replace("$",""))}", '#000000', medium_font)    
-    draw.text((1630,925+((num_line_items+3)*(70+50))),f"Total:      {format_currency(f"{icb_session.this_invoice['Total']}".replace("$",""))}", '#000000', medium_font)    
+    draw.text((1630,925+((num_line_items+1)*(70+50))),f"Subtotal: {format_currency(icb_session.this_invoice['Subtotal'])}", '#000000', medium_font)    
+    draw.text((1630,925+((num_line_items+2)*(70+50))),f"Tax:        {format_currency(icb_session.this_invoice['Sales_Tax'])}", '#000000', medium_font)    
+    draw.text((1630,925+((num_line_items+3)*(70+50))),f"Total:      {format_currency(icb_session.this_invoice['Total'])}", '#000000', medium_font)    
     draw.text((1275-380,2900),f"Status: {icb_session.this_invoice['Status']} {invoice_paid_date}", '#000000', medium_font)    
 
 
@@ -2406,15 +2406,15 @@ def save_invoice_to_database(window,values,filepath):
 
 
 def update_database_properties(window,values):
-    icb_session.sales_tax = f"{dec(values[f"-Edit_Sales_Tax-"])/100}"
+    icb_session.sales_tax = f"{dec(values['-Edit_Sales_Tax-'])/100}"
 
     database_properties = [
-        ["Business Name",f"{f"{values['-edit_db_name-']}".replace("'","''")}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
-        ["Address",f"{f"{values['-Edit_Business_Address-']}".replace("'","''")}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
+        ["Business Name",f"{values['-edit_db_name-']}".replace("'","''"),"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
+        ["Address",f"{values['-Edit_Business_Address-']}".replace("'","''"),"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Owner or Financial Officer Name",f"{values['-Edit_Business_Officer-']}".replace("'","''"),"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Title or Position",f"{values['-Edit_Business_Officer_Title-']}".replace("'","''"),"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Phone Number",f"{values['-Edit_Business_Phone-']}".replace("'","''"),"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
-        ["Email",f"{f"{values['-Edit_Business_Email-']}".replace("'","''")}","",icb_session.current_time_display[0],icb_session.current_time_display[0]],
+        ["Email",f"{values['-Edit_Business_Email-']}".replace("'","''"),"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Notes",values[f"-Edit_Business_Notes-"],"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["EIN or SSN",values[f"-Edit_Business_EIN-"],"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
         ["Receipts Repository Location",values[f"-Edit_Receipts_Repository-"],"",icb_session.current_time_display[0],icb_session.current_time_display[0]],
@@ -2441,7 +2441,7 @@ def update_sku(window,values):
     icb_session.console_log(this_updated_sku,icb_session.current_console_messages)
     
 def update_customer(window,values):
-    this_customer = f"{values["-Customer_Number_Display-"]}"[16:]
+    this_customer = f"{values['-Customer_Number_Display-']}"[16:]
     this_customer_name = values["-Customer_Name_Input-"]
     this_customer_first = values["-Customer_Contact_First_Input-"]
     this_customer_last = values["-Customer_Contact_Last_Input-"]
@@ -2470,7 +2470,7 @@ def update_customer(window,values):
 
 
 def update_vendor(window,values):
-    this_vendor = f"{values["-Vendor_Number_Display-"]}"[14:]
+    this_vendor = f"{values['-Vendor_Number_Display-']}"[14:]
     this_vendor_name = values["-Vendor_Name_Input-"]
     this_vendor_category = values["-Vendor_Category_Input-"]
     this_vendor_first = values["-Vendor_Contact_First_Input-"]
@@ -2933,7 +2933,7 @@ while True:
                 #current_console_messages = console_log(window, "Dashboard statistics updated.", current_console_messages)
         elif event == "-Transaction_Image_Button-":
             try:
-                subprocess.call(["xdg-open",f"{icb_session.window["-Transaction_Image_Button-"].ButtonText}"]) #linux
+                subprocess.call(["xdg-open",f"{icb_session.window['-Transaction_Image_Button-'].ButtonText}"]) #linux
             except:
                 subprocess.call([icb_session.window["-Transaction_Image_Button-"].ButtonText],shell=True) #windows
         elif event == "-Edit_Transaction_Button-":
@@ -3048,9 +3048,9 @@ while True:
                 load_services_tab(icb_session.window, values) 
         elif event == "Documentation":
             try:
-                subprocess.call(["xdg-open","./readme.pdf"]) #linux
+                subprocess.call(["xdg-open","./README.pdf"]) #linux
             except:
-                subprocess.call(["readme.pdf"],shell=True) #windows
+                subprocess.call(["README.pdf"],shell=True) #windows
         elif event == "About":
             this_tab_index = 11
             for i in range(len(tab_keys)):
